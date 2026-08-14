@@ -33,7 +33,8 @@ Most nutrition apps rely on foreign food databases and mainly focus on calorie c
 - Bereket Teshome (CTC-1367-26)
 - Degefa Lemma (CTC-623-26)
 - Dagmawi Yonas Lakew (CTC-819-26)
-Classroom number: 2
+
+-Classroom number: 2
 
 ## 🚀 Project Status
 
