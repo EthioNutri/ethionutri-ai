@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 
 const Step5NutritionGoals = ({ data, onChange, onComplete, onBack }) => {

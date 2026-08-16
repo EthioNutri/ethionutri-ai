@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 
 const Step2HealthProfile = ({ data, onChange, onNext, onBack }) => {
