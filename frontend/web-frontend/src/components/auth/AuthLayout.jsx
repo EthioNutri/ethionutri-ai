@@ -1,12 +1,8 @@
-import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import LanguageToggle from '../common/LanguageToggle';
 import ThemeToggle from '../common/ThemeToggle';
-import { useLanguage } from '../../context/LanguageContext';
 
 const AuthLayout = () => {
-  const { t } = useLanguage();
-
   return (
     <div style={{ 
       minHeight: '100vh',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -39,14 +39,13 @@ const AuthPage = ({ initialMode = 'signup' }) => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
+  const [currentPath, setCurrentPath] = useState(location.pathname);
 
-  useEffect(() => {
-    if (location.pathname === '/login') {
-      setIsActive(false);
-    } else if (location.pathname === '/register' || location.pathname === '/signup') {
-      setIsActive(true);
-    }
-  }, [location.pathname]);
+  // Keep the active panel in sync with the current route (e.g. /login vs /register)
+  if (location.pathname !== currentPath) {
+    setCurrentPath(location.pathname);
+    setIsActive(location.pathname === '/register' || location.pathname === '/signup');
+  }
 
   // Google Single Sign-On Simulation & Direct Onboarding Routing
   const handleGoogleAuth = async () => {
