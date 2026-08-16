@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import LanguageToggle from '../components/common/LanguageToggle';
 import ThemeToggle from '../components/common/ThemeToggle';
 import Step1Language from '../components/onboarding/Step1Language';
@@ -8,20 +8,29 @@ import Step4FastingPractices from '../components/onboarding/Step4FastingPractice
 import Step5NutritionGoals from '../components/onboarding/Step5NutritionGoals';
 import OnboardingComplete from '../components/onboarding/OnboardingComplete';
 
+const defaultFormData = {
+  age: '30',
+  sex: 'female',
+  height: '170',
+  weight: '65',
+  activityLevel: 'lightly_active',
+  conditions: [],
+  fastingPractice: 'orthodox_tsom',
+  nutritionGoal: 'health_balance'
+};
+
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState(() => {
     const saved = localStorage.getItem('ethionutri_onboarding');
-    return saved ? JSON.parse(saved) : {
-      age: '30',
-      sex: 'female',
-      height: '170',
-      weight: '65',
-      activityLevel: 'lightly_active',
-      conditions: [],
-      fastingPractice: 'orthodox_tsom',
-      nutritionGoal: 'health_balance'
-    };
+    if (saved) {
+      try {
+        return { ...defaultFormData, ...JSON.parse(saved) };
+      } catch {
+        // Corrupted saved data — fall back to defaults
+      }
+    }
+    return defaultFormData;
   });
 
   useEffect(() => {
