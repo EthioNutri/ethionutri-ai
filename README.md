@@ -1,16 +1,16 @@
-# EthioNutri AI 🌱
+# EthioNutri AI 
 
-## 📌 Project Description
+##  Project Description
 
 **EthioNutri AI** is an AI-powered nutrition and meal planning platform designed around Ethiopian foods, eating habits, and fasting practices. It provides personalized nutrition, meal, and exercise recommendations based on each user's health profile, dietary restrictions, health conditions, goals, and lifestyle.
 
-## 🚨 Problem
+##  Problem
 
 Most nutrition apps rely on foreign food databases and mainly focus on calorie counting. They often lack Ethiopian foods such as **injera, shiro, tibs**, and other local dishes, while also providing limited support for fasting practices and individual health conditions.
 
 **EthioNutri AI** aims to solve this by combining Ethiopian and international food data with AI-powered personalized recommendations.
 
-## ✨ Main Features
+##  Main Features
 
 * Personalized health profile
 * Ethiopian and international food database
@@ -36,7 +36,7 @@ Most nutrition apps rely on foreign food databases and mainly focus on calorie c
 
 -Classroom number: 2
 
-## 🚀 Project Status
+##  Project Status
 
 **Planning & Initial Development**
 
