@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Button = ({ 
   children, 
   type = 'button', 
@@ -9,7 +7,6 @@ const Button = ({
   disabled = false,
   onClick,
   style = {},
-  className = '',
   ...props 
 }) => {
   const isPrimary = variant === 'primary';
