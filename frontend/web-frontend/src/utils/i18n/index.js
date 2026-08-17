@@ -113,7 +113,14 @@ export const translations = {
     carbs: 'Carbs',
     fat: 'Healthy Fats',
     viewDashboard: 'Go to Dashboard',
-    retakeOnboarding: 'Edit Preferences'
+    retakeOnboarding: 'Edit Preferences',
+
+
+      supervisionTitle: 'Professional Supervision',
+      supervisionSubtitle: 'Manage your consultations and shared data.',
+      dietitianExpertiseLabel: 'Expertise',
+      dietitianLanguagesLabel: 'Languages',
+      bookConsultation: 'Book Consultation'
   },
   am: {
     // Brand & General
@@ -229,6 +236,13 @@ export const translations = {
     carbs: 'ካርቦሃይድሬት',
     fat: 'ጤናማ ቅባት',
     viewDashboard: 'ወደ ዳሽቦርድ ሂድ',
-    retakeOnboarding: 'ምርጫዎችን አሻሽል'
+    retakeOnboarding: 'ምርጫዎችን አሻሽል',
+
+
+        supervisionTitle: 'የባለሙያ ክትትል',
+        supervisionSubtitle: 'የምክክር ቀጠሮዎችዎን እና የተጋሩ መረጃዎችዎን ያስተዳድሩ።',
+        dietitianExpertiseLabel: 'ስፔሻሊቲ',
+        dietitianLanguagesLabel: 'ቋንቋዎች',
+        bookConsultation: 'ቀጠሮ ያስይዙ'
   }
 };
