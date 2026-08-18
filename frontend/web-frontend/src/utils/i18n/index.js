@@ -133,6 +133,16 @@ export const translations = {
       consentComplianceValue: '92% Compliance',
       consentAlertShared: 'Alert Shared',
       consentIronLow: 'Iron Levels Below target',
+
+
+      secureChatTitle: 'Secure Messages',
+      secureChatOnlineLabel: 'is Online',
+      secureChatOfflineLabel: 'is Offline',
+      secureChatEncrypted: 'Encrypted End-to-End',
+      secureChatPlaceholder: 'Type a message...',
+      secureChatSend: 'Send message',
+      secureChatAttach: 'Attach file',
+      secureChatAudioMessage: 'Audio message',
   },
   am: {
     // Brand & General
@@ -268,5 +278,15 @@ export const translations = {
         consentComplianceValue: '92% ተገዢነት',
         consentAlertShared: 'ማንቂያ ተጋርቷል',
         consentIronLow: 'የብረት መጠን ከዒላማ በታች',
+
+
+        secureChatTitle: 'ደህንነቱ የተጠበቀ መልዕክቶች',
+        secureChatOnlineLabel: 'ኦንላይን ነው/ናት',
+        secureChatOfflineLabel: 'ከመስመር ውጭ ነው/ናት',
+        secureChatEncrypted: 'ከጫፍ እስከ ጫፍ የተመሰጠረ',
+        secureChatPlaceholder: 'መልዕክት ይጻፉ...',
+        secureChatSend: 'መልዕክት ላክ',
+        secureChatAttach: 'ፋይል አያይዝ',
+        secureChatAudioMessage: 'የድምጽ መልዕክት',
   }
 };
