@@ -1185,3 +1185,119 @@ body {
 }
 
 
+
+/* ===== Data Sharing Consent Panel (FE-SUP-02) ===== */
+
+.consent-panel {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+}
+
+.consent-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.consent-panel-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.consent-panel-subtitle {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.consent-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 6px 12px 6px 6px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--color-border);
+  background-color: var(--color-bg-page);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.consent-toggle-knob {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--color-border);
+  transition: background-color 0.2s ease;
+}
+
+.consent-toggle-active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.consent-toggle-active .consent-toggle-knob {
+  background-color: var(--color-primary);
+}
+
+.consent-toggle-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.consent-status-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.consent-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-page);
+  border: 1px solid var(--color-border);
+}
+
+.consent-pill-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.consent-pill-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.consent-pill-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.consent-pill-alert {
+  background-color: rgba(220, 38, 38, 0.06);
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+.consent-pill-value-alert {
+  color: #DC2626;
+}
+
+.supervision-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+
