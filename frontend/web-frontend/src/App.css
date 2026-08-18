@@ -3206,3 +3206,27 @@ input:checked + .slider-round:before { transform: translateX(20px); }
 .hero-status-pill {
   color: #FFFFFF !important;
 }
+
+
+/* ==========================================================================
+   AI NUTRITIONIST - CHAT ONLY
+   ========================================================================== */
+
+.nutritionist-chat-only {
+  width: 100%;
+}
+
+.nutritionist-chat-only .secure-chat-card {
+  width: 100%;
+  min-height: 620px;
+}
+
+.nutritionist-chat-only .chat-messages-viewport {
+  min-height: 420px;
+  max-height: 520px;
+}
+
+.chat-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
