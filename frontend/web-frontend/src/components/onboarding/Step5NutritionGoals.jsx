@@ -114,7 +114,7 @@ const Step5NutritionGoals = ({ data, onChange, onComplete, onBack }) => {
                   display: 'inline-block',
                   animation: 'spin 0.8s linear infinite'
                 }} />
-                <span>Calibrating AI...</span>
+                <span>Go to Dashboard...</span>
               </>
             ) : (
               t('completePlan')
