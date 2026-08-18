@@ -3,9 +3,9 @@ import React from 'react';
 const FoodCard = ({
   title = "Doro Wat & Quinoa",
   amharicTitle = "ዶሮ ወጥ",
-  description = "A modern twist on a heritage classic. High protein to meet your target while honoring authentic spices.",
+  description = "A modern twist on a heritage classic. High protein to meet yo...",
   tags = ['450 kcal', 'High Protein', 'Iron Rich'],
-  image = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+  image = "/images/doro-wat.jpg",
   onLogMeal,
   onSecondaryAction,
   badgeText = "✨ AI Suggested Next Meal",
@@ -13,7 +13,7 @@ const FoodCard = ({
   return (
     <div className="ai-suggested-meal-card">
       <div className="suggested-img-wrap">
-        <img src={image} alt={title} className="suggested-food-img" />
+        <img src={image} alt={title} className="suggested-food-img" onError={(e) => { e.target.src = '/images/hero-food.jpg'; }} />
         {badgeText && (
           <div className="suggested-badge-overlay">
             {badgeText}
@@ -31,16 +31,9 @@ const FoodCard = ({
 
         <div className="suggested-tags-row">
           {tags.map((tag, idx) => {
-            const isProtein = tag.toLowerCase().includes('protein');
             const isIron = tag.toLowerCase().includes('iron');
-            const isCal = tag.toLowerCase().includes('kcal');
-            let pillClass = "tag-pill-default";
-            if (isProtein) pillClass = "tag-pill-protein";
-            if (isIron) pillClass = "tag-pill-iron";
-            if (isCal) pillClass = "tag-pill-cal";
-
             return (
-              <span key={idx} className={`tag-pill ${pillClass}`}>
+              <span key={idx} className={`tag-pill ${isIron ? 'tag-pill-iron' : 'tag-pill-default'}`}>
                 {tag}
               </span>
             );
@@ -51,14 +44,14 @@ const FoodCard = ({
           <button className="btn-log-meal" onClick={onLogMeal}>
             <span className="plus-icon">+</span> Log Meal
           </button>
-          <button className="btn-ar-scan" onClick={onSecondaryAction} title="View Recipe & Nutrition Breakdown">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button className="btn-ar-scan" onClick={onSecondaryAction} title="View Recipe & Nutrition AR Breakdown">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F4A876" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 7V5a2 2 0 0 1 2-2h2" />
               <path d="M17 3h2a2 2 0 0 1 2 2v2" />
               <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
               <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
-              <rect x="7" y="7" width="10" height="10" rx="1" />
             </svg>
+            <span className="ar-text-badge">S_AR</span>
           </button>
         </div>
       </div>
