@@ -201,7 +201,7 @@ const OnboardingComplete = ({ data, onReset }) => {
           </button>
           <button 
             className="nav-next-btn" 
-            onClick={() => alert(language === 'am' ? 'የአመጋገብ መገለጫዎ በተሳካ ሁኔታ ተቀምጧል!' : 'Your profile has been saved successfully!')}
+            onClick={onFinish || (() => window.location.href = '/dashboard')}
           >
             {t('save')} &rarr;
           </button>
