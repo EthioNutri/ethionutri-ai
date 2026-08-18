@@ -78,21 +78,21 @@ const Dashboard = () => {
                 consumed={dailyStats.protein.consumed}
                 target={dailyStats.protein.target}
                 unit={dailyStats.protein.unit}
-                color="#1F4B3F" // Deep Forest Green
+                color="#F4A876" // Terracotta / Peach
               />
               <MacroCard
                 name="Carbs"
                 consumed={dailyStats.carbs.consumed}
                 target={dailyStats.carbs.target}
                 unit={dailyStats.carbs.unit}
-                color="#A8571E" // Terracotta / Earthy Brown
+                color="#7FD9A8" // Mint / Teal-Green
               />
               <MacroCard
                 name="Fats"
                 consumed={dailyStats.fats.consumed}
                 target={dailyStats.fats.target}
                 unit={dailyStats.fats.unit}
-                color="#78350F" // Warm Amber Brown
+                color="#E5A65E" // Warm Amber
               />
               <MacroCard
                 name="Water"
