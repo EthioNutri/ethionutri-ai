@@ -1,6 +1,8 @@
 import { useLanguage } from '../context/LanguageContext';
 import DietitianProfileCard from '../components/nutritionist/DietitianProfileCard';
 
+import DataSharingConsent from '../components/nutritionist/DataSharingConsent';
+
 // Placeholder until the backend endpoint for the assigned dietitian is ready.
 const mockDietitian = {
   name: 'Dr. Selamawit Tadesse',
@@ -30,8 +32,13 @@ const NutritionistSupervision = () => {
           dietitian={mockDietitian}
           onBookConsultation={handleBookConsultation}
         />
-        {/* Data Sharing Consent panel (FE-SUP-02) and Secure Chat (FE-SUP-03)
-            will be added to the right column in the next issues. */}
+        
+
+                <div className="supervision-right-column">
+          <DataSharingConsent />
+          {/* Secure Chat (FE-SUP-03) will be added below the consent panel
+              in the next issue. */}
+        </div>
       </div>
     </div>
   );
