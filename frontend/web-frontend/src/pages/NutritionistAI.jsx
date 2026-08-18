@@ -276,7 +276,7 @@ const NutritionistAI = () => {
             <form onSubmit={handleBookSession} style={{ marginTop: '16px' }}>
               <div className="form-group">
                 <label className="form-label">Consultant</label>
-                <div style={{ padding: '10px 14px', background: '#F8F5F0', borderRadius: '10px', fontWeight: 600 }}>
+                <div style={{ padding: '10px 14px', background: 'var(--ethiocream-bg)', borderRadius: '10px', fontWeight: 600 }}>
                   Dr. Selamawit Tadesse (RD, Heritage Nutrition)
                 </div>
               </div>
