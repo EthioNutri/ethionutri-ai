@@ -101,7 +101,7 @@ export const translations = {
     goalMuscleDesc: 'Plant and traditional animal protein pairing (Shiro, Misir, Gomen Besiga, Ayib).',
     goalHealth: 'Blood Sugar & Cardiovascular Balance',
     goalHealthDesc: 'Low-glycemic legumes, traditional herbs, and anti-inflammatory greens.',
-    completePlan: 'Generate My Nutrition Plan ✨',
+    completePlan: 'Go to Dashboard →',
     
     // Dashboard / Result
     dashboardTitle: 'Your Cultural Nutrition Profile',
@@ -217,7 +217,7 @@ export const translations = {
     goalMuscleDesc: 'የባህል ፕሮቲን ጥምረቶች (ሽሮ፣ ምስር፣ ጎመን በስጋ፣ አይብ)።',
     goalHealth: 'የስኳር መጠን እና የልብ ጤና',
     goalHealthDesc: 'ዝቅተኛ ግላይሴሚክ ያላቸው ጥራጥሬዎች፣ ባህላዊ ቅመሞች እና አረንጓዴ ቅጠሎች።',
-    completePlan: 'የምግብ እቅዴን አዘጋጅ ✨',
+    completePlan: 'ወደ ዳሽቦርድ ይሂዱ →',
 
     // Dashboard / Result
     dashboardTitle: 'የእርስዎ ባህላዊ የአመጋገብ መገለጫ',
