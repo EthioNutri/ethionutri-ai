@@ -120,7 +120,19 @@ export const translations = {
       supervisionSubtitle: 'Manage your consultations and shared data.',
       dietitianExpertiseLabel: 'Expertise',
       dietitianLanguagesLabel: 'Languages',
-      bookConsultation: 'Book Consultation'
+      bookConsultation: 'Book Consultation',
+
+
+      consentTitle: 'Data Sharing Consent',
+      consentSubtitle: 'Control what Dr. Selamawit can view.',
+      consentActive: 'Active',
+      consentInactive: 'Inactive',
+      consentRecentLogs: 'Recent Logs',
+      consentAvgKcalValue: 'Avg 1,850 kcal/day',
+      consentFastingAdherence: 'Fasting Adherence',
+      consentComplianceValue: '92% Compliance',
+      consentAlertShared: 'Alert Shared',
+      consentIronLow: 'Iron Levels Below target',
   },
   am: {
     // Brand & General
@@ -243,6 +255,18 @@ export const translations = {
         supervisionSubtitle: 'የምክክር ቀጠሮዎችዎን እና የተጋሩ መረጃዎችዎን ያስተዳድሩ።',
         dietitianExpertiseLabel: 'ስፔሻሊቲ',
         dietitianLanguagesLabel: 'ቋንቋዎች',
-        bookConsultation: 'ቀጠሮ ያስይዙ'
+        bookConsultation: 'ቀጠሮ ያስይዙ',
+
+
+        consentTitle: 'የመረጃ መጋራት ፈቃድ',
+        consentSubtitle: 'ዶ/ር ሰላማዊት ማየት የሚችሉትን ይቆጣጠሩ።',
+        consentActive: 'ንቁ',
+        consentInactive: 'ንቁ ያልሆነ',
+        consentRecentLogs: 'የቅርብ ጊዜ ምዝግቦች',
+        consentAvgKcalValue: 'አማካይ 1,850 kcal/day',
+        consentFastingAdherence: 'የጾም ተገዢነት',
+        consentComplianceValue: '92% ተገዢነት',
+        consentAlertShared: 'ማንቂያ ተጋርቷል',
+        consentIronLow: 'የብረት መጠን ከዒላማ በታች',
   }
 };
