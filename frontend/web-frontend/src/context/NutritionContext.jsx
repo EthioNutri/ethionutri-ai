@@ -94,10 +94,10 @@ export const NutritionProvider = ({ children }) => {
   const [recommendedMeal, setRecommendedMeal] = useState({
     name: 'Doro Wat & Quinoa',
     amharicName: 'ዶሮ ወጥ',
-    description: 'A modern twist on a heritage classic. High protein to meet your target while honoring authentic berbere warmth.',
+    description: 'A modern twist on a heritage classic. High protein to meet yo...',
     calories: 450,
     tags: ['450 kcal', 'High Protein', 'Iron Rich'],
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
+    image: '/images/doro-wat.jpg',
   });
 
   // Shopping list items with ETB pricing
