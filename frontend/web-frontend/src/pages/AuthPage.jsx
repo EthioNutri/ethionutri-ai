@@ -1,105 +1,122 @@
-import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 
 const GoogleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24">
     <path
-      fill="#4285F4"
-      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+      fill="#EA4335"
+      d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.9 5 12 5z"
     />
     <path
-      fill="#34A853"
-      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.35 24 12 24z"
+      fill="#4285F4"
+      d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
     />
     <path
       fill="#FBBC05"
-      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.01 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+      d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.7s.1-2 .4-2.7L1.6 6.4C.6 8.3 0 10.1 0 12s.6 3.7 1.6 5.6l3.7-2.9z"
     />
     <path
-      fill="#EA4335"
-      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+      fill="#34A853"
+      d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.3-6.7-5.3L1.6 16c1.9 3.8 5.8 7 10.4 7z"
     />
   </svg>
 );
 
 const AuthPage = ({ initialMode = 'signup' }) => {
-  const [isActive, setIsActive] = useState(initialMode === 'signup');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { login, register } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
+
+  const [isActive, setIsActive] = useState(() => {
+    if (location.pathname === '/login') return false;
+    if (location.pathname === '/signup' || location.pathname === '/register') return true;
+    return initialMode === 'signup';
+  });
+
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [signUpData, setSignUpData] = useState({ name: '', email: '', password: '' });
   const [signInData, setSignInData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
 
-  const { login, register } = useAuth();
-  const { t, language } = useLanguage();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [currentPath, setCurrentPath] = useState(location.pathname);
+  useEffect(() => {
+    if (location.pathname === '/login') {
+      setIsActive(false);
+    } else if (location.pathname === '/signup' || location.pathname === '/register') {
+      setIsActive(true);
+    }
+  }, [location.pathname]);
 
-  // Keep the active panel in sync with the current route (e.g. /login vs /register)
-  if (location.pathname !== currentPath) {
-    setCurrentPath(location.pathname);
-    setIsActive(location.pathname === '/register' || location.pathname === '/signup');
-  }
+  const showMessage = (text) => {
+    setErrorMsg(text);
+  };
 
-  // Google Single Sign-On Simulation & Direct Onboarding Routing
+  // Google Single Sign-On
   const handleGoogleAuth = async () => {
-    setIsGoogleLoading(true);
+    setIsLoading(true);
     setErrorMsg('');
 
-    // Simulate Google SSO exchange
     const result = await register({
-      fullName: 'Abebe Bikila (Google User)',
-      email: 'user@gmail.com',
+      fullName: 'Selamawit Kebede (Google User)',
+      email: 'selamawit@ethionutri.ai',
       password: 'google_oauth_verified'
     });
 
-    setIsGoogleLoading(false);
+    setIsLoading(false);
 
     if (result.success) {
-      // Seamlessly directs straight into Onboarding
-      navigate('/onboarding');
+      if (isActive) {
+        navigate('/onboarding', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } else {
-      setErrorMsg(language === 'am' ? 'በGoogle መግባት አልተሳካም' : 'Google Authentication failed');
+      showMessage(language === 'am' ? 'በGoogle መግባት አልተሳካም' : 'Google Authentication failed');
     }
   };
 
-  // Sign Up Form Submission -> Directly into Onboarding
+  // Sign Up Form Submission
   const handleSignUpSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!signUpData.name || signUpData.name.trim().length < 2) {
-      setErrorMsg(language === 'am' ? 'እባክዎ ሙሉ ስም ያስገቡ' : 'Name must be at least 2 characters');
+    const name = signUpData.name.trim();
+    const email = signUpData.email.trim();
+    const password = signUpData.password;
+
+    if (!name || name.length < 2) {
+      showMessage(language === 'am' ? 'ስም ቢያንስ 2 ፊደላት መሆን አለበት' : 'Name must be at least 2 characters');
       return;
     }
-    if (!signUpData.email || !signUpData.email.includes('@')) {
-      setErrorMsg(language === 'am' ? 'እባክዎ ትክክለኛ ኢሜይል ያስገቡ' : 'Please enter a valid email');
+    if (!email || !email.includes('@')) {
+      showMessage(language === 'am' ? 'እባክዎ ትክክለኛ ኢሜይል ያስገቡ' : 'Please enter a valid email');
       return;
     }
-    if (!signUpData.password || signUpData.password.length < 6) {
-      setErrorMsg(language === 'am' ? 'የይለፍ ቃል ቢያንስ 6 ፊደላት መሆን አለበት' : 'Password must be at least 6 characters');
+    if (!password || password.length < 6) {
+      showMessage(language === 'am' ? 'የይለፍ ቃል ቢያንስ 6 ፊደላት መሆን አለበት' : 'Password must be at least 6 characters');
       return;
     }
 
     setIsLoading(true);
     const result = await register({
-      fullName: signUpData.name,
-      email: signUpData.email,
-      password: signUpData.password
+      fullName: name,
+      email: email,
+      password: password
     });
     setIsLoading(false);
 
     if (result.success) {
-      // Direct integration: seamlessly route new registrations to Onboarding screen
-      navigate('/onboarding');
+      navigate('/onboarding', { replace: true });
     } else {
-      setErrorMsg(result.error || (language === 'am' ? 'የምዝገባ ስህተት ተከስቷል' : 'Registration failed'));
+      showMessage(result.error || (language === 'am' ? 'የምዝገባ ስህተት ተከስቷል' : 'Registration failed'));
     }
   };
 
@@ -108,27 +125,30 @@ const AuthPage = ({ initialMode = 'signup' }) => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!signInData.email || !signInData.password) {
-      setErrorMsg(language === 'am' ? 'ኢሜይል እና የይለፍ ቃል ያስፈልጋል' : 'Email and password are required');
+    const email = signInData.email.trim();
+    const password = signInData.password;
+
+    if (!email || !password) {
+      showMessage(language === 'am' ? 'ኢሜይል እና የይለፍ ቃል ያስፈልጋል' : 'Email and password are required');
       return;
     }
 
     setIsLoading(true);
-    const result = await login(signInData);
+    const result = await login({ email, password });
     setIsLoading(false);
 
     if (result.success) {
-      const from = location.state?.from?.pathname || '/onboarding';
-      navigate(from, { replace: true });
+      navigate('/dashboard', { replace: true });
     } else {
-      setErrorMsg(t('invalidCredentials'));
+      showMessage(language === 'am' ? 'የተሳሳተ ኢሜይል ወይም የይለፍ ቃል' : 'Invalid email or password');
     }
   };
 
+  // Forgot Password Form Submission
   const handleForgotSubmit = (e) => {
     e.preventDefault();
     if (!forgotEmail || !forgotEmail.includes('@')) {
-      alert(language === 'am' ? 'እባክዎ ትክክለኛ ኢሜይል ያስገቡ' : 'Please enter a valid email address');
+      showMessage(language === 'am' ? 'እባክዎ ትክክለኛ ኢሜይል ያስገቡ' : 'Please enter a valid email address');
       return;
     }
     setForgotSent(true);
@@ -136,309 +156,381 @@ const AuthPage = ({ initialMode = 'signup' }) => {
       setShowForgotModal(false);
       setForgotSent(false);
       setForgotEmail('');
-    }, 2200);
+    }, 2500);
   };
 
   return (
     <div className="auth-sliding-wrapper">
-      <div className={`auth-sliding-container ${isActive ? 'active' : ''}`} id="container">
-        
-        {/* Sign Up Form Container */}
-        <div className="sliding-form-container sliding-sign-up">
-          <form onSubmit={handleSignUpSubmit}>
-            <h1>{t('createAccount')}</h1>
-            
-            {/* Google-Only Social Auth Button */}
-            <button
-              type="button"
-              className="google-auth-btn"
-              onClick={handleGoogleAuth}
-              disabled={isGoogleLoading}
-            >
-              <GoogleIcon />
-              <span>
-                {isGoogleLoading 
-                  ? (language === 'am' ? 'በመገናኘት ላይ...' : 'Connecting Google...') 
-                  : (language === 'am' ? 'በGoogle ይመዝገቡ' : 'Sign up with Google')}
-              </span>
-            </button>
-
-            <span className="auth-subtitle">
-              {language === 'am' ? 'ወይም በኢሜይል ይመዝገቡ' : 'or use your email for registration'}
-            </span>
-
-            {errorMsg && isActive && (
-              <div style={{
-                backgroundColor: 'var(--color-error-bg)',
-                color: 'var(--color-error)',
-                padding: '8px 14px',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '12px',
-                marginBottom: '8px',
-                fontWeight: '600',
-                width: '100%',
-                maxWidth: '340px'
-              }}>
-                {errorMsg}
-              </div>
-            )}
-
-            <input
-              type="text"
-              placeholder={language === 'am' ? 'ሙሉ ስም' : 'Full Name'}
-              className="auth-input-field"
-              value={signUpData.name}
-              onChange={(e) => setSignUpData({ ...signUpData, name: e.target.value })}
-            />
-            <input
-              type="email"
-              placeholder={language === 'am' ? 'ኢሜይል' : 'Email address'}
-              className="auth-input-field"
-              value={signUpData.email}
-              onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
-            />
-            <input
-              type="password"
-              placeholder={language === 'am' ? 'የይለፍ ቃል (ቢያንስ 6)' : 'Password (min. 6 chars)'}
-              className="auth-input-field"
-              value={signUpData.password}
-              onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
-            />
-
-            <button type="submit" className="auth-form-btn" disabled={isLoading}>
-              {isLoading ? (language === 'am' ? 'በመመዝገብ ላይ...' : 'Creating Account...') : t('register')} &rarr;
-            </button>
-
-            {/* Mobile switch button */}
-            <div style={{ display: 'none', marginTop: '14px', fontSize: '13px' }} className="mobile-only-switch">
-              <span>{t('alreadyHaveAccount')} </span>
-              <button 
-                type="button" 
-                onClick={() => setIsActive(false)} 
-                style={{ background: 'none', border: 'none', color: 'var(--color-accent)', fontWeight: '700', cursor: 'pointer' }}
-              >
-                {t('login')}
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Sign In Form Container */}
-        <div className="sliding-form-container sliding-sign-in">
-          <form onSubmit={handleSignInSubmit}>
-            <h1>{t('login')}</h1>
-            
-            {/* Google-Only Social Auth Button */}
-            <button
-              type="button"
-              className="google-auth-btn"
-              onClick={handleGoogleAuth}
-              disabled={isGoogleLoading}
-            >
-              <GoogleIcon />
-              <span>
-                {isGoogleLoading 
-                  ? (language === 'am' ? 'በመገናኘት ላይ...' : 'Connecting Google...') 
-                  : (language === 'am' ? 'በGoogle ይግቡ' : 'Sign in with Google')}
-              </span>
-            </button>
-
-            <span className="auth-subtitle">
-              {language === 'am' ? 'ወይም በኢሜይልና የይለፍ ቃል ይግቡ' : 'or use your email & password'}
-            </span>
-
-            {errorMsg && !isActive && (
-              <div style={{
-                backgroundColor: 'var(--color-error-bg)',
-                color: 'var(--color-error)',
-                padding: '8px 14px',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '12px',
-                marginBottom: '8px',
-                fontWeight: '600',
-                width: '100%',
-                maxWidth: '340px'
-              }}>
-                {errorMsg}
-              </div>
-            )}
-
-            <input
-              type="email"
-              placeholder={language === 'am' ? 'ኢሜይል' : 'Email address'}
-              className="auth-input-field"
-              value={signInData.email}
-              onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
-            />
-            <input
-              type="password"
-              placeholder={language === 'am' ? 'የይለፍ ቃል' : 'Password'}
-              className="auth-input-field"
-              value={signInData.password}
-              onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
-            />
-
-            <a
-              href="#forgot-password"
-              className="forgot-link"
-              onClick={(e) => {
-                e.preventDefault();
-                setShowForgotModal(true);
-              }}
-            >
-              {t('forgotPassword')}
-            </a>
-
-            <button type="submit" className="auth-form-btn" disabled={isLoading}>
-              {isLoading ? (language === 'am' ? 'በመግባት ላይ...' : 'Signing In...') : t('login')} &rarr;
-            </button>
-
-            {/* Mobile switch button */}
-            <div style={{ display: 'none', marginTop: '14px', fontSize: '13px' }} className="mobile-only-switch">
-              <span>{t('noAccount')} </span>
-              <button 
-                type="button" 
-                onClick={() => setIsActive(true)} 
-                style={{ background: 'none', border: 'none', color: 'var(--color-accent)', fontWeight: '700', cursor: 'pointer' }}
-              >
-                {t('register')}
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Sliding Toggle Panel Overlay */}
-        <div className="sliding-toggle-container">
-          <div className="sliding-toggle">
-            
-            {/* Left Toggle Panel (Shown when Sign Up is visible, prompts Sign In) */}
-            <div className="sliding-toggle-panel sliding-toggle-left">
-              <h1>{t('welcomeBack')}</h1>
-              <p>
-                {language === 'am'
-                  ? 'ወደ መለያዎ በመግባት ባህላዊ የአመጋገብ እቅድዎን እና የጤና ምክሮችን ይቀጥሉ።'
-                  : 'Sign in with your details to access your personalized traditional Ethiopian nutrition blueprint.'}
-              </p>
-              <button
-                type="button"
-                className="auth-form-btn hidden-btn"
-                id="login"
-                onClick={() => {
-                  setIsActive(false);
-                  navigate('/login', { replace: true });
-                }}
-              >
-                {t('login')}
-              </button>
-            </div>
-
-            {/* Right Toggle Panel (Shown when Sign In is visible, prompts Sign Up) */}
-            <div className="sliding-toggle-panel sliding-toggle-right">
-              <h1>{language === 'am' ? 'ሰላም፣ እንኳን መጡ!' : 'Hello, Friend!'}</h1>
-              <p>
-                {language === 'am'
-                  ? 'ለግል የተዘጋጀ ባህላዊ የኢትዮጵያ የአመጋገብ እቅድ ለማግኘት አሁኑኑ ይመዝገቡና ኦንቦርዲንግ ይጀምሩ።'
-                  : 'Register your account to start your tailored Ethiopian wellness & nutrition onboarding journey.'}
-              </p>
-              <button
-                type="button"
-                className="auth-form-btn hidden-btn"
-                id="register"
-                onClick={() => {
-                  setIsActive(true);
-                  navigate('/register', { replace: true });
-                }}
-              >
-                {t('register')}
-              </button>
-            </div>
-
+      {/* Top Header Navbar */}
+      <header className="auth-sliding-topbar">
+        <Link to="/" className="marketing-brand-logo" style={{ textDecoration: 'none' }}>
+          <div className="marketing-brand-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+            </svg>
           </div>
-        </div>
+          <span className="marketing-brand-text">EthioNutri AI</span>
+        </Link>
 
+        <div className="auth-minimal-actions">
+          {/* Language Selector Dropdown */}
+          <div className="marketing-lang-dropdown-wrapper">
+            <button
+              type="button"
+              className="marketing-icon-btn"
+              onClick={() => setLangDropdownOpen((prev) => !prev)}
+              title="Change Language / ቋንቋ ቀይር"
+            >
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+            </button>
+
+            {langDropdownOpen && (
+              <div className="marketing-dropdown-menu">
+                <button
+                  type="button"
+                  className={`marketing-dropdown-item ${language === 'en' ? 'selected' : ''}`}
+                  onClick={() => {
+                    setLanguage('en');
+                    setLangDropdownOpen(false);
+                  }}
+                >
+                  <span>English (US/UK)</span>
+                  {language === 'en' && <span className="check-mark">✓</span>}
+                </button>
+                <button
+                  type="button"
+                  className={`marketing-dropdown-item ${language === 'am' ? 'selected' : ''}`}
+                  onClick={() => {
+                    setLanguage('am');
+                    setLangDropdownOpen(false);
+                  }}
+                >
+                  <span>አማርኛ (Amharic)</span>
+                  {language === 'am' && <span className="check-mark">✓</span>}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Dark Mode Toggle */}
+          <button
+            type="button"
+            className="marketing-icon-btn"
+            onClick={toggleTheme}
+            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label="Toggle theme"
+          >
+            {isDark ? (
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2" />
+                <path d="M12 20v2" />
+                <path d="m4.93 4.93 1.41 1.41" />
+                <path d="m17.66 17.66 1.41 1.41" />
+                <path d="M2 12h2" />
+                <path d="M20 12h2" />
+                <path d="m6.34 17.66-1.41 1.41" />
+                <path d="m19.07 4.93-1.41 1.41" />
+              </svg>
+            ) : (
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#2B2622" strokeWidth="2">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+              </svg>
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* Main Sliding Dual Panel Container */}
+      <div className="auth-sliding-body">
+        <div className={`container ${isActive ? 'active' : ''}`} id="container">
+          
+          {/* Sign Up Form Container */}
+          <div className="form-container sign-up">
+            <form onSubmit={handleSignUpSubmit}>
+              <h1>{language === 'am' ? 'መለያ ይፍጠሩ' : 'Create Account'}</h1>
+              
+              {/* Single Google Sign-In Option */}
+              <button
+                type="button"
+                className="google-auth-btn"
+                onClick={handleGoogleAuth}
+                disabled={isLoading}
+              >
+                <GoogleIcon />
+                <span>{language === 'am' ? 'በGoogle ይቀጥሉ' : 'Continue with Google'}</span>
+              </button>
+
+              <span>{language === 'am' ? 'ወይም በኢሜይል ይመዝገቡ' : 'or use your email for registration'}</span>
+
+              {errorMsg && isActive && (
+                <div className="auth-msg-pill error">
+                  {errorMsg}
+                </div>
+              )}
+
+              <input
+                type="text"
+                placeholder={language === 'am' ? 'ሙሉ ስም' : 'Full Name'}
+                value={signUpData.name}
+                onChange={(e) => setSignUpData({ ...signUpData, name: e.target.value })}
+                required
+              />
+              <input
+                type="email"
+                placeholder={language === 'am' ? 'ኢሜይል አድራሻ' : 'Email Address'}
+                value={signUpData.email}
+                onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
+                required
+              />
+              <input
+                type="password"
+                placeholder={language === 'am' ? 'የይለፍ ቃል (ቢያንስ 6 ፊደላት)' : 'Password (min. 6 chars)'}
+                value={signUpData.password}
+                onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
+                required
+              />
+              <button type="submit" disabled={isLoading}>
+                {isLoading ? (language === 'am' ? 'በመመዝገብ ላይ...' : 'Signing Up...') : (language === 'am' ? 'ይመዝገቡ' : 'Sign Up')}
+              </button>
+
+              {/* Mobile Quick Switch */}
+              <div className="auth-mobile-switch">
+                <span>{language === 'am' ? 'ቀደም ሲል መለያ አለዎት? ' : 'Already have an account? '}</span>
+                <button
+                  type="button"
+                  className="auth-link-btn"
+                  onClick={() => {
+                    setIsActive(false);
+                    navigate('/login', { replace: true });
+                  }}
+                >
+                  {language === 'am' ? 'ግባ' : 'Sign In'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Sign In Form Container */}
+          <div className="form-container sign-in">
+            <form onSubmit={handleSignInSubmit}>
+              <h1>{language === 'am' ? 'ግባ' : 'Sign In'}</h1>
+              
+              {/* Single Google Sign-In Option */}
+              <button
+                type="button"
+                className="google-auth-btn"
+                onClick={handleGoogleAuth}
+                disabled={isLoading}
+              >
+                <GoogleIcon />
+                <span>{language === 'am' ? 'በGoogle ይቀጥሉ' : 'Continue with Google'}</span>
+              </button>
+
+              <span>{language === 'am' ? 'ወይም በኢሜይልና የይለፍ ቃል ይግቡ' : 'or use your email & password'}</span>
+
+              {errorMsg && !isActive && (
+                <div className="auth-msg-pill error">
+                  {errorMsg}
+                </div>
+              )}
+
+              {/* Quick Demo Fill Pill */}
+              <div
+                className="demo-credentials-pill"
+                onClick={() => setSignInData({ email: 'test@example.com', password: 'password' })}
+                title="Click to prefill test credentials"
+              >
+                ⚡ Quick Demo: test@example.com / password
+              </div>
+
+              <input
+                type="email"
+                placeholder={language === 'am' ? 'ኢሜይል አድራሻ' : 'Email Address'}
+                value={signInData.email}
+                onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
+                required
+              />
+              <input
+                type="password"
+                placeholder={language === 'am' ? 'የይለፍ ቃል' : 'Password'}
+                value={signInData.password}
+                onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
+                required
+              />
+              <a
+                href="#forgot-password"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowForgotModal(true);
+                }}
+              >
+                {language === 'am' ? 'የይለፍ ቃል ረሱ?' : 'Forget Your Password?'}
+              </a>
+              <button type="submit" disabled={isLoading}>
+                {isLoading ? (language === 'am' ? 'በመግባት ላይ...' : 'Signing In...') : (language === 'am' ? 'ግባ' : 'Sign In')}
+              </button>
+
+              {/* Mobile Quick Switch */}
+              <div className="auth-mobile-switch">
+                <span>{language === 'am' ? 'መለያ የለዎትም? ' : "Don't have an account? "}</span>
+                <button
+                  type="button"
+                  className="auth-link-btn"
+                  onClick={() => {
+                    setIsActive(true);
+                    navigate('/signup', { replace: true });
+                  }}
+                >
+                  {language === 'am' ? 'ይመዝገቡ' : 'Sign Up'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Sliding Overlay Toggle Panels */}
+          <div className="toggle-container">
+            <div className="toggle">
+              {/* Left Panel: Prompt to Sign In */}
+              <div className="toggle-panel toggle-left">
+                <h1>{language === 'am' ? 'እንኳን ደህና መጡ!' : 'Welcome Back!'}</h1>
+                <p>
+                  {language === 'am'
+                    ? 'ወደ መለያዎ በመግባት ባህላዊ የአመጋገብ እቅድዎን እና የጤና ምክሮችን ይቀጥሉ።'
+                    : 'Enter your personal details to access your personalized traditional Ethiopian nutrition blueprint.'}
+                </p>
+                <button
+                  className="hidden"
+                  id="login"
+                  type="button"
+                  onClick={() => {
+                    setIsActive(false);
+                    navigate('/login', { replace: true });
+                  }}
+                >
+                  {language === 'am' ? 'ግባ' : 'Sign In'}
+                </button>
+              </div>
+
+              {/* Right Panel: Prompt to Sign Up */}
+              <div className="toggle-panel toggle-right">
+                <h1>{language === 'am' ? 'ሰላም፣ እንኳን መጡ!' : 'Hello, Friend!'}</h1>
+                <p>
+                  {language === 'am'
+                    ? 'ለግል የተዘጋጀ ባህላዊ የኢትዮጵያ የአመጋገብ እቅድ ለማግኘት አሁኑኑ ይመዝገቡ።'
+                    : 'Register with your personal details to start your tailored Ethiopian wellness & nutrition journey.'}
+                </p>
+                <button
+                  className="hidden"
+                  id="register"
+                  type="button"
+                  onClick={() => {
+                    setIsActive(true);
+                    navigate('/signup', { replace: true });
+                  }}
+                >
+                  {language === 'am' ? 'ይመዝገቡ' : 'Sign Up'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       {/* Forgot Password Modal */}
       {showForgotModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          padding: '20px'
-        }}>
-          <div style={{
-            backgroundColor: 'var(--color-bg-card)',
-            padding: '34px 30px',
-            borderRadius: 'var(--radius-xl)',
-            width: '100%',
-            maxWidth: '440px',
-            border: '1.5px solid var(--color-border)',
-            boxShadow: 'var(--shadow-lg)',
-            textAlign: 'center'
-          }}>
-            <h2 style={{ fontSize: '22px', color: 'var(--color-primary)', marginBottom: '8px', fontWeight: '800' }}>
-              {t('forgotPassword')}
-            </h2>
-            <p style={{ fontSize: '13.5px', color: 'var(--color-text-muted)', marginBottom: '20px', lineHeight: '1.45' }}>
-              {language === 'am'
-                ? 'የይለፍ ቃል ማስተካከያ ማስፈንጠሪያ ለመቀበል የተመዘገቡበትን ኢሜይል ያስገቡ።'
-                : 'Enter your registered email address to receive a secure password reset link.'}
-            </p>
+        <div className="recipe-modal-backdrop" onClick={() => setShowForgotModal(false)}>
+          <div className="recipe-modal-dialog small" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+            <button
+              type="button"
+              className="recipe-modal-close-btn"
+              onClick={() => setShowForgotModal(false)}
+            >
+              ✕
+            </button>
+            <div style={{ padding: '32px 26px', textAlign: 'center' }}>
+              <h2 style={{ fontSize: '22px', color: 'var(--color-primary)', marginBottom: '8px', fontWeight: '800' }}>
+                {language === 'am' ? 'የይለፍ ቃል መልሶ ማግኛ' : 'Reset Password'}
+              </h2>
+              <p style={{ fontSize: '13.5px', color: 'var(--color-text-muted)', marginBottom: '20px', lineHeight: '1.45' }}>
+                {language === 'am'
+                  ? 'የይለፍ ቃል ማስተካከያ ማስፈንጠሪያ ለመቀበል የተመዘገቡበትን ኢሜይል ያስገቡ።'
+                  : 'Enter your registered email address to receive a secure password reset link.'}
+              </p>
 
-            {forgotSent ? (
-              <div style={{
-                backgroundColor: 'var(--color-primary-light)',
-                color: 'var(--color-primary)',
-                padding: '14px',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '13px',
-                fontWeight: '700',
-                border: '1px solid var(--color-primary-border)'
-              }}>
-                ✓ {language === 'am' ? 'የማስተካከያ ሊንክ ወደ ኢሜይልዎ ተልኳል!' : 'Reset link has been sent to your email!'}
-              </div>
-            ) : (
-              <form onSubmit={handleForgotSubmit}>
-                <input
-                  type="email"
-                  placeholder="name@example.com"
-                  className="auth-input-field"
-                  value={forgotEmail}
-                  onChange={(e) => setForgotEmail(e.target.value)}
-                  style={{ marginBottom: '18px', maxWidth: '100%' }}
-                  required
-                />
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotModal(false)}
-                    style={{
-                      padding: '12px 22px',
-                      borderRadius: 'var(--radius-pill)',
-                      border: '1.5px solid var(--color-border)',
-                      backgroundColor: 'transparent',
-                      color: 'var(--color-text)',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: '600'
-                    }}
-                  >
-                    {t('back')}
-                  </button>
-                  <button type="submit" className="auth-form-btn" style={{ marginTop: 0, padding: '12px 28px', width: 'auto' }}>
-                    {language === 'am' ? 'ላክ' : 'Send Link'}
-                  </button>
+              {forgotSent ? (
+                <div style={{
+                  backgroundColor: 'rgba(127, 217, 168, 0.15)',
+                  color: '#7FD9A8',
+                  border: '1px solid #7FD9A8',
+                  padding: '14px',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  fontWeight: '700'
+                }}>
+                  ✓ {language === 'am' ? 'የማስተካከያ ሊንክ ወደ ኢሜይልዎ ተልኳል!' : 'If this email is registered, you will receive a reset link shortly.'}
                 </div>
-              </form>
-            )}
+              ) : (
+                <form onSubmit={handleForgotSubmit} id="forgotForm">
+                  <input
+                    type="email"
+                    placeholder="name@example.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: '10px',
+                      border: '1.5px solid var(--color-border)',
+                      backgroundColor: 'var(--color-bg-card)',
+                      color: 'var(--color-text)',
+                      marginBottom: '18px',
+                      fontSize: '14px'
+                    }}
+                    required
+                  />
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotModal(false)}
+                      style={{
+                        flex: 1,
+                        padding: '10px 18px',
+                        borderRadius: '10px',
+                        border: '1px solid var(--color-border)',
+                        background: 'transparent',
+                        color: 'var(--color-text)',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {language === 'am' ? 'ተመለስ' : 'Cancel'}
+                    </button>
+                    <button
+                      type="submit"
+                      style={{
+                        flex: 1,
+                        padding: '10px 18px',
+                        borderRadius: '10px',
+                        border: 'none',
+                        background: '#E8935C',
+                        color: '#121212',
+                        fontWeight: '800',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {language === 'am' ? 'ላክ' : 'Send Link'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           </div>
         </div>
       )}
