@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import DietitianProfileCard from '../components/nutritionist/DietitianProfileCard';
-
 import DataSharingConsent from '../components/nutritionist/DataSharingConsent';
+import SecureChat from '../components/nutritionist/SecureChat';
+import { mockChatMessages, mockDietitianStatus } from '../components/nutritionist/mockChatMessages';
 
 // Placeholder until the backend endpoint for the assigned dietitian is ready.
 const mockDietitian = {
@@ -14,10 +16,25 @@ const mockDietitian = {
 
 const NutritionistSupervision = () => {
   const { t } = useLanguage();
+  const [messages, setMessages] = useState(mockChatMessages);
 
   const handleBookConsultation = () => {
     // TODO: wire up to the consultation booking API once available (backend team).
     console.log('Book consultation requested for', mockDietitian.name);
+  };
+
+  const handleSendMessage = ({ type, text }) => {
+    // TEMPORARY: appends locally only. Once the backend chat endpoint
+    // exists, replace this with a POST call, then update `messages`
+    // from the response (or re-fetch) instead of pushing directly here.
+    const newMessage = {
+      id: Date.now(),
+      sender: 'user',
+      type,
+      text,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, newMessage]);
   };
 
   return (
@@ -32,12 +49,14 @@ const NutritionistSupervision = () => {
           dietitian={mockDietitian}
           onBookConsultation={handleBookConsultation}
         />
-        
-
-                <div className="supervision-right-column">
+        <div className="supervision-right-column">
           <DataSharingConsent />
-          {/* Secure Chat (FE-SUP-03) will be added below the consent panel
-              in the next issue. */}
+          <SecureChat
+            messages={messages}
+            dietitianName={mockDietitianStatus.name}
+            isDietitianOnline={mockDietitianStatus.isOnline}
+            onSendMessage={handleSendMessage}
+          />
         </div>
       </div>
     </div>
