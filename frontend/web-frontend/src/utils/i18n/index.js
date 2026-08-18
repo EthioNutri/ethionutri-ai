@@ -143,6 +143,12 @@ export const translations = {
       secureChatSend: 'Send message',
       secureChatAttach: 'Attach file',
       secureChatAudioMessage: 'Audio message',
+
+
+      upcomingSessionsTitle: 'Upcoming Sessions',
+      addSession: 'Add session',
+      viewCalendar: 'View Calendar',
+      noUpcomingSessions: 'No upcoming sessions scheduled.',
   },
   am: {
     // Brand & General
@@ -288,5 +294,11 @@ export const translations = {
         secureChatSend: 'መልዕክት ላክ',
         secureChatAttach: 'ፋይል አያይዝ',
         secureChatAudioMessage: 'የድምጽ መልዕክት',
+
+
+        upcomingSessionsTitle: 'ቀጣይ ክፍለ ጊዜያት',
+        addSession: 'ክፍለ ጊዜ ጨምር',
+        viewCalendar: 'የቀን መቁጠሪያ ይመልከቱ',
+        noUpcomingSessions: 'ምንም ቀጣይ ክፍለ ጊዜ አልተያዘም።',
   }
 };
