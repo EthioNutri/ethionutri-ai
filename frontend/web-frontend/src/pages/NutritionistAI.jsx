@@ -1,39 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNutrition } from '../context/NutritionContext';
+import { useAuth } from '../context/AuthContext';
 
 const NutritionistAI = () => {
   const { chatMessages, sendChatMessage } = useNutrition();
+  const { user } = useAuth();
   const [inputText, setInputText] = useState('');
   const [dataConsentActive, setDataConsentActive] = useState(true);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
-  const suggestedQuestions = [
-    'What should I eat tonight?',
-    'Am I getting enough iron on fasting days?',
-    'How do I boost my protein during Wednesday fast?',
-    'Is Teff Injera suitable for blood sugar management?',
-  ];
+  const messagesEndRef = useRef(null);
 
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (!inputText.trim()) return;
-    sendChatMessage(inputText);
-    setInputText('');
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleQuickQuestion = (q) => {
-    sendChatMessage(q);
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages, isTyping]);
+
+  const suggestedQuestions = [
+    'What can I eat during fasting?',
+    'Is shiro good for iron deficiency?',
+    'Hydration tips for Tsom',
+    'በጾም ወቅት ምን ዓይነት ምግብ መመገብ አለብኝ?',
+    'How to optimize iron absorption with Teff?'
+  ];
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (!inputText.trim()) return;
+    const msg = inputText;
+    setInputText('');
+    setIsTyping(true);
+    try {
+      await sendChatMessage(msg);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleQuickQuestion = async (q) => {
+    setIsTyping(true);
+    try {
+      await sendChatMessage(q);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleVoicePrompt = () => {
     setIsRecording(true);
     setToastMsg('🎙️ Listening to voice question (Amharic / English)...');
-    setTimeout(() => {
+    setTimeout(async () => {
       setIsRecording(false);
-      sendChatMessage('How can I optimize my iron absorption with Ethiopian food?');
       setToastMsg('');
+      setIsTyping(true);
+      try {
+        await sendChatMessage('How can I optimize my iron absorption with Ethiopian food?');
+      } finally {
+        setIsTyping(false);
+      }
     }, 1800);
   };
 
@@ -42,6 +72,23 @@ const NutritionistAI = () => {
     setShowBookingModal(false);
     setToastMsg('📅 Consultation booked with Dr. Selamawit for Friday, 10:00 AM!');
     setTimeout(() => setToastMsg(''), 4000);
+  };
+
+  // Helper to format basic markdown (bold, bullets, line breaks)
+  const renderFormattedText = (text) => {
+    if (!text) return '';
+    return text.split('\n').map((line, idx) => {
+      // Bold rendering
+      const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+        return (
+          <li key={idx} dangerouslySetInnerHTML={{ __html: formattedLine.replace(/^[-*]\s+/, '') }} style={{ marginLeft: '16px', marginBottom: '4px' }} />
+        );
+      }
+      return (
+        <p key={idx} dangerouslySetInnerHTML={{ __html: formattedLine }} style={{ marginBottom: line.trim() === '' ? '8px' : '4px' }} />
+      );
+    });
   };
 
   return (
@@ -55,13 +102,13 @@ const NutritionistAI = () => {
 
       {/* Top Header */}
       <div className="supervision-header">
-        <h1 className="supervision-title">Professional Supervision</h1>
+        <h1 className="supervision-title">AI Nutritionist & Professional Supervision</h1>
         <p className="supervision-sub">
-          Manage your consultations and shared nutrition telemetry.
+          Real-time AI dietary advice, clinical Ethiopian nutrition intelligence, and shared telemetry.
         </p>
       </div>
 
-      {/* 2-Column Grid matching Screenshot 5 */}
+      {/* 2-Column Grid */}
       <div className="supervision-grid">
         {/* Left Column: Doctor Profile & Upcoming Sessions */}
         <div className="dietitian-profile-column">
@@ -76,22 +123,22 @@ const NutritionistAI = () => {
             </div>
 
             <h2 className="doctor-name">Dr. Selamawit Tadesse</h2>
-            <div className="doctor-role-badge">REGISTERED DIETITIAN</div>
+            <div className="doctor-role-badge">REGISTERED DIETITIAN • AI COPILOT</div>
 
             <div className="doctor-meta-block">
               <div className="meta-sublabel">EXPERTISE</div>
               <p className="meta-detail">
-                Ethiopian traditional diets, Clinical nutrition, Fasting management.
+                Ethiopian traditional heritage diets, Orthodox Tsom fasting, Clinical Micronutrient Therapy.
               </p>
             </div>
 
             <div className="doctor-meta-block">
               <div className="meta-sublabel">LANGUAGES</div>
-              <p className="meta-detail">Amharic, English</p>
+              <p className="meta-detail">English, አማርኛ (Amharic)</p>
             </div>
 
             <button className="btn-book-consult" onClick={() => setShowBookingModal(true)}>
-              <span className="calendar-icon">📅</span> Book Consultation
+              <span className="calendar-icon">📅</span> Book 1-on-1 Consultation
             </button>
           </div>
 
@@ -121,12 +168,12 @@ const NutritionistAI = () => {
 
         {/* Right Column: Data Sharing Consent + Chat Panel */}
         <div className="chat-and-consent-column">
-          {/* Data Sharing Consent Card (Screenshot 5) */}
+          {/* Data Sharing Consent Card */}
           <div className="data-consent-card">
             <div className="consent-top-row">
               <div>
-                <h4 className="consent-title">Data Sharing Consent</h4>
-                <p className="consent-sub">Control what Dr. Selamawit and AI nutritionist can view.</p>
+                <h4 className="consent-title">Telemetry & Context Sharing</h4>
+                <p className="consent-sub">AI Nutritionist is injected with your active fasting status, health conditions & 7-day logs.</p>
               </div>
 
               {/* Toggle Switch */}
@@ -150,8 +197,8 @@ const NutritionistAI = () => {
                   <span className="chip-icon">🍴</span>
                   <span className="chip-tag">Shared</span>
                 </div>
-                <div className="chip-label">Recent Logs</div>
-                <div className="chip-value">Avg 1850 kcal/day</div>
+                <div className="chip-label">Recent Intake</div>
+                <div className="chip-value">7-Day Log Telemetry</div>
               </div>
 
               <div className="telemetry-chip shared-neutral">
@@ -160,43 +207,44 @@ const NutritionistAI = () => {
                   <span className="chip-tag">Shared</span>
                 </div>
                 <div className="chip-label">Fasting Adherence</div>
-                <div className="chip-value">92% Compliance</div>
+                <div className="chip-value">Orthodox Tsom Active</div>
               </div>
 
               <div className="telemetry-chip shared-alert">
                 <div className="chip-head">
-                  <span className="chip-icon">⚠️</span>
-                  <span className="chip-tag alert">Alert Shared</span>
+                  <span className="chip-icon">✨</span>
+                  <span className="chip-tag alert">AI Model</span>
                 </div>
-                <div className="chip-label">Iron Levels</div>
-                <div className="chip-value alert-text">Below target (Last 7d)</div>
+                <div className="chip-label">Engine</div>
+                <div className="chip-value alert-text">Google Gemini AI</div>
               </div>
             </div>
           </div>
 
-          {/* Secure AI Nutritionist Chat Panel (Screenshot 5) */}
+          {/* Secure AI Nutritionist Chat Panel */}
           <div className="secure-chat-card">
             {/* Chat Top Banner */}
             <div className="chat-top-banner">
               <div className="chat-status-left">
                 <span className="chat-icon">💬</span>
-                <span className="chat-heading">Secure Messages</span>
+                <span className="chat-heading">AI Nutritionist Consultation</span>
                 <span className="chat-online-indicator">
-                  <span className="green-pulse-dot" /> AI Nutritionist is Online
+                  <span className="green-pulse-dot" /> Gemini 2.5/3.6 Flash Online
                 </span>
               </div>
               <div className="chat-encrypted-badge">
-                🔒 Encrypted End-to-End
+                🔒 HIPAA & Privacy Protected
               </div>
             </div>
 
-            {/* Suggested Question Chips */}
+            {/* Quick Prompt Question Chips */}
             <div className="suggested-chips-scroll">
               {suggestedQuestions.map((q, idx) => (
                 <button
                   key={idx}
                   className="suggested-q-chip"
                   onClick={() => handleQuickQuestion(q)}
+                  disabled={isTyping}
                 >
                   {q}
                 </button>
@@ -206,7 +254,7 @@ const NutritionistAI = () => {
             {/* Messages Scroll Area */}
             <div className="chat-messages-viewport">
               {chatMessages.map((msg) => {
-                const isAi = msg.sender === 'nutritionist';
+                const isAi = msg.sender === 'nutritionist' || msg.sender === 'ai';
                 return (
                   <div
                     key={msg.id}
@@ -219,7 +267,9 @@ const NutritionistAI = () => {
                     )}
 
                     <div className={`chat-bubble ${isAi ? 'bubble-ai' : 'bubble-user'}`}>
-                      <p className="bubble-text">{msg.text}</p>
+                      <div className="bubble-text">
+                        {renderFormattedText(msg.text)}
+                      </div>
                       <span className="bubble-timestamp">
                         {msg.time} {isAi ? '' : '✓✓'}
                       </span>
@@ -227,6 +277,22 @@ const NutritionistAI = () => {
                   </div>
                 );
               })}
+
+              {/* Typing Indicator */}
+              {isTyping && (
+                <div className="chat-bubble-row bubble-ai-row">
+                  <div className="ai-chat-avatar">🌱</div>
+                  <div className="chat-bubble bubble-ai" style={{ padding: '12px 18px' }}>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '13px', color: 'var(--ethiogreen-text)', fontWeight: 600 }}>
+                        EthioNutri AI is analyzing your nutritional context...
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Bottom Input Form */}
@@ -250,11 +316,12 @@ const NutritionistAI = () => {
               <input
                 type="text"
                 className="chat-text-input"
-                placeholder="Type a message or ask about fasting nutrition..."
+                placeholder="Ask about fasting recipes, iron boost, protein swaps in English or አማርኛ..."
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                disabled={isTyping}
               />
-              <button type="submit" className="chat-send-btn" title="Send Message">
+              <button type="submit" className="chat-send-btn" title="Send Message" disabled={isTyping || !inputText.trim()}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13" />
                   <polygon points="22 2 15 22 11 13 2 9 22 2" />

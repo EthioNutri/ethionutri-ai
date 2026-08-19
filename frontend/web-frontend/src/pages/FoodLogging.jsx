@@ -199,8 +199,8 @@ const FoodLogging = () => {
 
             <div className="totals-ring-wrap">
               <CalorieRing
-                consumed={dailyStats.calories.consumed}
-                target={dailyStats.calories.target}
+                consumed={dailyStats?.calories?.consumed ?? 0}
+                target={dailyStats?.calories?.target ?? 2000}
                 size={190}
                 label="kcal consumed"
               />
@@ -208,7 +208,7 @@ const FoodLogging = () => {
 
             <div className="totals-remaining-badge">
               <span className="remaining-count">
-                {Math.max(0, dailyStats.calories.target - dailyStats.calories.consumed)} kcal
+                {Math.max(0, (dailyStats?.calories?.target ?? 2000) - (dailyStats?.calories?.consumed ?? 0))} kcal
               </span>{' '}
               remaining for today
             </div>
@@ -216,29 +216,29 @@ const FoodLogging = () => {
             <div className="totals-macro-list">
               <MacroCard
                 name="Protein"
-                consumed={dailyStats.protein.consumed}
-                target={dailyStats.protein.target}
+                consumed={dailyStats?.protein?.consumed ?? 0}
+                target={dailyStats?.protein?.target ?? 150}
                 unit="g"
                 color="#1F4B3F"
               />
               <MacroCard
                 name="Carbs"
-                consumed={dailyStats.carbs.consumed}
-                target={dailyStats.carbs.target}
+                consumed={dailyStats?.carbs?.consumed ?? 0}
+                target={dailyStats?.carbs?.target ?? 200}
                 unit="g"
                 color="#A8571E"
               />
               <MacroCard
                 name="Fats"
-                consumed={dailyStats.fats.consumed}
-                target={dailyStats.fats.target}
+                consumed={dailyStats?.fats?.consumed ?? 0}
+                target={dailyStats?.fats?.target ?? 65}
                 unit="g"
                 color="#78350F"
               />
               <MacroCard
                 name="Hydration"
-                consumed={dailyStats.water.consumed}
-                target={dailyStats.water.target}
+                consumed={dailyStats?.water?.consumed ?? 0}
+                target={dailyStats?.water?.target ?? 2.5}
                 unit="L"
                 isWater={true}
               />
@@ -252,7 +252,7 @@ const FoodLogging = () => {
               </div>
               <div className="micro-bar-row">
                 <span className="micro-name">Iron (Teff & Lentils)</span>
-                <span className="micro-val">{dailyStats.iron.consumed} / {dailyStats.iron.target} mg</span>
+                <span className="micro-val">{dailyStats?.iron?.consumed ?? 0} / {dailyStats?.iron?.target ?? 18} mg</span>
               </div>
               <div className="micro-track">
                 <div className="micro-fill alert-red" style={{ width: '52%' }} />
@@ -260,7 +260,7 @@ const FoodLogging = () => {
 
               <div className="micro-bar-row" style={{ marginTop: '12px' }}>
                 <span className="micro-name">Dietary Fiber</span>
-                <span className="micro-val">{dailyStats.fiber.consumed} / {dailyStats.fiber.target} g</span>
+                <span className="micro-val">{dailyStats?.fiber?.consumed ?? 0} / {dailyStats?.fiber?.target ?? 30} g</span>
               </div>
               <div className="micro-track">
                 <div className="micro-fill safe-green" style={{ width: '80%' }} />

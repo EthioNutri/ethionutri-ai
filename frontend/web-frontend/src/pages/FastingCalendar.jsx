@@ -1,60 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNutrition } from '../context/NutritionContext';
+import apiClient from '../services/apiClient';
 
 const FastingCalendar = () => {
   const { fastingCycle } = useNutrition();
-  const [selectedDay, setSelectedDay] = useState(11);
+  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   const [reminderSet, setReminderSet] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
+  const [calendarRows, setCalendarRows] = useState([]);
+  const [currentMonthName, setCurrentMonthName] = useState('');
 
-  // Calendar dates matrix for October 2023 (as shown in reference image 2)
-  const calendarRows = [
-    [
-      { day: 25, isCurrentMonth: false },
-      { day: 26, isCurrentMonth: false },
-      { day: 27, isCurrentMonth: false, isFasting: true },
-      { day: 28, isCurrentMonth: false },
-      { day: 29, isCurrentMonth: false, isFasting: true },
-      { day: 30, isCurrentMonth: false },
-      { day: 1, isCurrentMonth: true },
-    ],
-    [
-      { day: 2, isCurrentMonth: true },
-      { day: 3, isCurrentMonth: true },
-      { day: 4, isCurrentMonth: true, isFasting: true },
-      { day: 5, isCurrentMonth: true },
-      { day: 6, isCurrentMonth: true, isFasting: true },
-      { day: 7, isCurrentMonth: true },
-      { day: 8, isCurrentMonth: true },
-    ],
-    [
-      { day: 9, isCurrentMonth: true },
-      { day: 10, isCurrentMonth: true },
-      { day: 11, isCurrentMonth: true, isFasting: true, isCurrentDay: true },
-      { day: 12, isCurrentMonth: true },
-      { day: 13, isCurrentMonth: true, isFasting: true },
-      { day: 14, isCurrentMonth: true },
-      { day: 15, isCurrentMonth: true },
-    ],
-    [
-      { day: 16, isCurrentMonth: true },
-      { day: 17, isCurrentMonth: true },
-      { day: 18, isCurrentMonth: true, isFasting: true },
-      { day: 19, isCurrentMonth: true },
-      { day: 20, isCurrentMonth: true, isFasting: true },
-      { day: 21, isCurrentMonth: true },
-      { day: 22, isCurrentMonth: true },
-    ],
-    [
-      { day: 23, isCurrentMonth: true },
-      { day: 24, isCurrentMonth: true },
-      { day: 25, isCurrentMonth: true, isFasting: true },
-      { day: 26, isCurrentMonth: true },
-      { day: 27, isCurrentMonth: true, isFasting: true },
-      { day: 28, isCurrentMonth: true },
-      { day: 29, isCurrentMonth: true },
-    ],
-  ];
+  useEffect(() => {
+    const fetchCalendar = async () => {
+      try {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth() + 1;
+        setCurrentMonthName(today.toLocaleString('default', { month: 'long', year: 'numeric' }));
+        
+        const res = await apiClient.get(`/fasting-calendar?month=${year}-${month}`);
+        // Response is an array of {date, isFastingDay, cycleName}
+        // Group into 7-day rows
+        const data = res.data;
+        const rows = [];
+        let currentRow = [];
+        
+        // Pad beginning of month
+        const firstDay = new Date(year, month - 1, 1).getDay();
+        const padDays = (firstDay === 0 ? 6 : firstDay - 1);
+        for(let i=0; i<padDays; i++) {
+          currentRow.push({ day: '', isCurrentMonth: false });
+        }
+
+        data.forEach(d => {
+          const dayNum = parseInt(d.date.split('-')[2]);
+          currentRow.push({
+            day: dayNum,
+            isCurrentMonth: true,
+            isFasting: d.isFastingDay,
+            isCurrentDay: dayNum === today.getDate()
+          });
+          if (currentRow.length === 7) {
+            rows.push(currentRow);
+            currentRow = [];
+          }
+        });
+
+        if (currentRow.length > 0) {
+          while (currentRow.length < 7) {
+            currentRow.push({ day: '', isCurrentMonth: false });
+          }
+          rows.push(currentRow);
+        }
+
+        setCalendarRows(rows);
+      } catch (err) {
+        console.error("Failed to fetch calendar", err);
+      }
+    };
+    fetchCalendar();
+  }, []);
 
   const handleSetReminder = () => {
     setReminderSet(true);
@@ -71,14 +76,12 @@ const FastingCalendar = () => {
 
   return (
     <div className="fasting-calendar-page">
-      {/* Toast */}
       {toastMsg && (
         <div className="app-toast-alert">
           <span>{toastMsg}</span>
         </div>
       )}
 
-      {/* Page Heading */}
       <div className="tsom-page-header">
         <h1 className="tsom-main-heading">Tsom Calendar</h1>
         <p className="tsom-main-sub">
@@ -86,12 +89,10 @@ const FastingCalendar = () => {
         </p>
       </div>
 
-      {/* Main Grid: Calendar Table on Left, Details & Tips on Right */}
       <div className="tsom-calendar-grid">
-        {/* Left Column: Month Matrix */}
         <div className="tsom-calendar-card">
           <div className="calendar-month-nav">
-            <h3 className="calendar-month-name">October 2023</h3>
+            <h3 className="calendar-month-name">{currentMonthName}</h3>
             <div className="calendar-nav-arrows">
               <button className="arrow-btn">‹</button>
               <button className="arrow-btn">›</button>
@@ -134,11 +135,10 @@ const FastingCalendar = () => {
             </div>
           </div>
 
-          {/* Calendar Legend */}
           <div className="calendar-legend-box">
             <div className="legend-entry">
               <span className="legend-indicator-dot peach-dot" />
-              <span>Wednesday/Friday Fast (ረቡዕ እና አርብ ፆም)</span>
+              <span>Fasting Day (ፆም)</span>
             </div>
             <div className="legend-entry">
               <span className="legend-indicator-dot green-dot" />
@@ -147,9 +147,7 @@ const FastingCalendar = () => {
           </div>
         </div>
 
-        {/* Right Column: Active Fast & Tsom Nutrition Tips */}
         <div className="tsom-sidebar-column">
-          {/* Active Fast Card (Screenshot 2) */}
           <div className="active-fast-detail-card">
             <div className="active-fast-top-badge-row">
               <span className="active-fast-badge">ACTIVE FAST</span>
@@ -157,7 +155,7 @@ const FastingCalendar = () => {
             </div>
 
             <h3 className="active-fast-title">
-              Wednesday Fast <span className="active-fast-amharic amharic-text">የረቡዕ ፆም</span>
+              {fastingCycle.title || 'Wednesday Fast'} <span className="active-fast-amharic amharic-text">{fastingCycle.amharicTitle}</span>
             </h3>
 
             <div className="active-fast-metrics">
@@ -167,7 +165,7 @@ const FastingCalendar = () => {
               </div>
               <div className="metric-line">
                 <span className="metric-label">Dietary Rule</span>
-                <span className="metric-value">Strict Vegan</span>
+                <span className="metric-value">{fastingCycle.description || 'Strict Vegan'}</span>
               </div>
             </div>
 
@@ -180,7 +178,6 @@ const FastingCalendar = () => {
             </button>
           </div>
 
-          {/* Tsom Nutrition Tips Card (Screenshot 2) */}
           <div className="tsom-nutrition-tips-card">
             <div className="tips-card-header">
               <span className="tips-shield-icon">🛡️</span>
@@ -222,7 +219,6 @@ const FastingCalendar = () => {
         </div>
       </div>
 
-      {/* Major Orthodox Fasting Seasons Banner List */}
       <div className="major-fasting-seasons-section">
         <h3 className="seasons-heading">Major Ethiopian Orthodox Fasting Seasons (አጽዋማት)</h3>
         <div className="seasons-grid">

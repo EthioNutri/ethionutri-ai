@@ -64,8 +64,8 @@ const Dashboard = () => {
             {/* Circular Ring Column */}
             <div className="ring-section">
               <CalorieRing
-                consumed={dailyStats.calories.consumed}
-                target={dailyStats.calories.target}
+                consumed={dailyStats?.calories?.consumed ?? 0}
+                target={dailyStats?.calories?.target ?? 2000}
                 size={220}
                 label="kcal eaten"
               />
@@ -75,30 +75,30 @@ const Dashboard = () => {
             <div className="macros-quad-grid">
               <MacroCard
                 name="Protein"
-                consumed={dailyStats.protein.consumed}
-                target={dailyStats.protein.target}
-                unit={dailyStats.protein.unit}
+                consumed={dailyStats?.protein?.consumed ?? 0}
+                target={dailyStats?.protein?.target ?? 150}
+                unit={dailyStats?.protein?.unit ?? 'g'}
                 color="#F4A876" // Terracotta / Peach
               />
               <MacroCard
                 name="Carbs"
-                consumed={dailyStats.carbs.consumed}
-                target={dailyStats.carbs.target}
-                unit={dailyStats.carbs.unit}
+                consumed={dailyStats?.carbs?.consumed ?? 0}
+                target={dailyStats?.carbs?.target ?? 200}
+                unit={dailyStats?.carbs?.unit ?? 'g'}
                 color="#7FD9A8" // Mint / Teal-Green
               />
               <MacroCard
                 name="Fats"
-                consumed={dailyStats.fats.consumed}
-                target={dailyStats.fats.target}
-                unit={dailyStats.fats.unit}
+                consumed={dailyStats?.fats?.consumed ?? 0}
+                target={dailyStats?.fats?.target ?? 65}
+                unit={dailyStats?.fats?.unit ?? 'g'}
                 color="#E5A65E" // Warm Amber
               />
               <MacroCard
                 name="Water"
-                consumed={dailyStats.water.consumed}
-                target={dailyStats.water.target}
-                unit={dailyStats.water.unit}
+                consumed={dailyStats?.water?.consumed ?? 0}
+                target={dailyStats?.water?.target ?? 2.5}
+                unit={dailyStats?.water?.unit ?? 'L'}
                 isWater={true}
               />
             </div>

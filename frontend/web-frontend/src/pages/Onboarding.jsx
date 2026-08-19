@@ -8,6 +8,7 @@ import Step3DietaryNeeds from '../components/onboarding/Step3DietaryNeeds';
 import Step4FastingPractices from '../components/onboarding/Step4FastingPractices';
 import Step5NutritionGoals from '../components/onboarding/Step5NutritionGoals';
 import OnboardingComplete from '../components/onboarding/OnboardingComplete';
+import apiClient from '../services/apiClient';
 
 const defaultFormData = {
   age: '30',
@@ -23,6 +24,7 @@ const defaultFormData = {
 const Onboarding = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState(() => {
     const saved = localStorage.getItem('ethionutri_onboarding');
     if (saved) {
@@ -47,9 +49,29 @@ const Onboarding = () => {
   const prevStep = () => setCurrentStep((prev) => Math.max(1, prev - 1));
   const resetToStep = (step = 1) => setCurrentStep(step);
 
-  const handleFinishStep5 = () => {
-    localStorage.setItem('ethionutri_onboarded', 'true');
-    navigate('/dashboard', { replace: true });
+  const handleFinishStep5 = async () => {
+    try {
+      setIsSubmitting(true);
+      await apiClient.post('/onboarding/health-profile', {
+        age: Number(formData.age),
+        biologicalSex: formData.sex,
+        heightCm: Number(formData.height),
+        weightKg: Number(formData.weight),
+        activityLevel: formData.activityLevel,
+        healthConditions: formData.conditions,
+        fastingPractice: formData.fastingPractice,
+        goalType: formData.nutritionGoal
+      });
+      localStorage.setItem('ethionutri_onboarded', 'true');
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      console.error("Failed to save health profile", err);
+      // fallback navigate anyway for robustness in this demo
+      localStorage.setItem('ethionutri_onboarded', 'true');
+      navigate('/dashboard', { replace: true });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderStep = () => {
@@ -125,10 +147,15 @@ const Onboarding = () => {
       </header>
 
       <main className="onboarding-main-container">
-        {renderStep()}
+        {isSubmitting ? (
+          <div style={{textAlign: 'center', marginTop: '100px'}}>Saving your profile...</div>
+        ) : (
+          renderStep()
+        )}
       </main>
     </div>
   );
 };
 
 export default Onboarding;
+
