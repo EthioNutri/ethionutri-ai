@@ -18,7 +18,9 @@ const defaultFormData = {
   activityLevel: 'lightly_active',
   conditions: [],
   fastingPractice: 'orthodox_tsom',
-  nutritionGoal: 'health_balance'
+  nutritionGoal: 'health_balance',
+  targetWeight: '60',
+  healthObjective: ''
 };
 
 const Onboarding = () => {
@@ -57,10 +59,12 @@ const Onboarding = () => {
         biologicalSex: formData.sex,
         heightCm: Number(formData.height),
         weightKg: Number(formData.weight),
+        targetWeightKg: Number(formData.targetWeight),
         activityLevel: formData.activityLevel,
         healthConditions: formData.conditions,
         fastingPractice: formData.fastingPractice,
-        goalType: formData.nutritionGoal
+        goalType: formData.nutritionGoal,
+        healthObjective: formData.healthObjective
       });
       localStorage.setItem('ethionutri_onboarded', 'true');
       navigate('/dashboard', { replace: true });
