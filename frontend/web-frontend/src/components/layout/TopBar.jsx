@@ -4,6 +4,7 @@ import { useNutrition } from '../../context/NutritionContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { getAvatarUrl } from '../../utils/imageHelper';
 
 const pageTitleMap = {
   '/dashboard': 'Wednesday Fast',
@@ -12,6 +13,7 @@ const pageTitleMap = {
   '/meal-planning': 'Weekly Plan',
   '/fasting-app': 'Fasting Calendar (Tsom)',
   '/nutritionist': 'Nutritionist AI',
+  '/profile': 'Profile & Preferences',
 };
 
 const AVATAR_PRESETS = [
@@ -198,8 +200,7 @@ const TopBar = ({ onSearch }) => {
           <button
             type="button"
             className="topbar-user-avatar-btn"
-            onClick={() => setIsEditModalOpen(true)}
-            aria-expanded={isEditModalOpen}
+            onClick={() => navigate('/profile')}
             title={user?.name || 'User Profile'}
             style={{
               width: '42px',
@@ -221,15 +222,9 @@ const TopBar = ({ onSearch }) => {
             }}
           >
             <img
-              src={user?.avatar || AVATAR_PRESETS[0]}
+              src={getAvatarUrl(user?.avatar) || AVATAR_PRESETS[0]}
               alt={user?.name || 'User Avatar'}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                borderRadius: '50%',
-                display: 'block'
-              }}
+              className="topbar-user-avatar"
               onError={(e) => {
                 e.currentTarget.src = AVATAR_PRESETS[0];
               }}
@@ -243,7 +238,7 @@ const TopBar = ({ onSearch }) => {
               <div className="google-dropdown-hero">
                 <div className="google-avatar-container" onClick={() => { setDropdownOpen(false); setIsEditModalOpen(true); }} title="Click to change photo">
                   <img
-                    src={user?.avatar || AVATAR_PRESETS[0]}
+                    src={getAvatarUrl(user?.avatar) || AVATAR_PRESETS[0]}
                     alt="User"
                     className="google-hero-avatar"
                   />
