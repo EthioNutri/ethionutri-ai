@@ -7,9 +7,7 @@ const LandingPage = () => {
   const { language } = useLanguage();
   const { isAuthenticated } = useAuth();
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
+
 
   return (
     <div className="landing-page-wrapper">
@@ -44,9 +42,15 @@ const LandingPage = () => {
 
             {/* CTA Button Group */}
             <div className="landing-hero-ctas">
-              <Link to="/signup" className="landing-cta-primary">
-                {language === 'am' ? 'በነፃ ይጀምሩ' : 'Get Started Free'}
-              </Link>
+              {isAuthenticated ? (
+                <Link to="/dashboard" className="landing-cta-primary">
+                  {language === 'am' ? 'ወደ መተግበሪያ ዳሽቦርድ ሂድ →' : 'Go to App Dashboard →'}
+                </Link>
+              ) : (
+                <Link to="/signup" className="landing-cta-primary">
+                  {language === 'am' ? 'በነፃ ይጀምሩ' : 'Get Started Free'}
+                </Link>
+              )}
               <Link to="/how-it-works" className="landing-cta-secondary">
                 <span className="play-icon-circle">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
