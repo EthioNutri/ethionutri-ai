@@ -199,7 +199,7 @@ const FoodLogging = () => {
             <div className="totals-ring-wrap">
               <CalorieRing
                 consumed={dailyStats?.calories?.consumed ?? 0}
-                target={dailyStats?.calories?.target ?? 2000}
+                target={dailyStats?.calories?.target}
                 size={190}
                 label="kcal consumed"
               />
@@ -216,28 +216,28 @@ const FoodLogging = () => {
               <MacroCard
                 name="Protein"
                 consumed={dailyStats?.protein?.consumed ?? 0}
-                target={dailyStats?.protein?.target ?? 150}
+                target={dailyStats?.protein?.target}
                 unit="g"
                 color="#1F4B3F"
               />
               <MacroCard
                 name="Carbs"
                 consumed={dailyStats?.carbs?.consumed ?? 0}
-                target={dailyStats?.carbs?.target ?? 200}
+                target={dailyStats?.carbs?.target}
                 unit="g"
                 color="#A8571E"
               />
               <MacroCard
                 name="Fats"
                 consumed={dailyStats?.fats?.consumed ?? 0}
-                target={dailyStats?.fats?.target ?? 65}
+                target={dailyStats?.fats?.target}
                 unit="g"
                 color="#78350F"
               />
               <MacroCard
                 name="Hydration"
                 consumed={dailyStats?.water?.consumed ?? 0}
-                target={dailyStats?.water?.target ?? 2.5}
+                target={dailyStats?.water?.target}
                 unit="L"
                 isWater={true}
               />
