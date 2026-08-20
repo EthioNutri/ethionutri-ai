@@ -79,10 +79,9 @@ const FoodLogging = () => {
         </div>
       </div>
 
-      {/* 3 Quick-Entry Action Cards */}
+      {/* 2 Quick-Entry Action Cards */}
       <div className="logging-action-section">
         <ActionRow
-          onScanMeal={() => handleOpenModal('scan')}
           onVoiceLog={() => handleOpenModal('voice')}
           onManualEntry={() => handleOpenModal('manual')}
         />
@@ -248,14 +247,24 @@ const FoodLogging = () => {
             <div className="micronutrient-box">
               <div className="micro-header">
                 <span>Key Micronutrients</span>
-                <span className="micro-status-warning">⚠️ Iron Alert</span>
+                {(dailyStats?.iron?.consumed ?? 0) < (dailyStats?.iron?.target || 18) * 0.5 ? (
+                  <span className="micro-status-warning">⚠️ Iron Alert</span>
+                ) : (
+                  <span style={{ fontSize: '11px', color: 'var(--forest-green)', fontWeight: 700 }}>✓ Optimal</span>
+                )}
               </div>
               <div className="micro-bar-row">
                 <span className="micro-name">Iron (Teff & Lentils)</span>
                 <span className="micro-val">{dailyStats?.iron?.consumed ?? 0} / {dailyStats?.iron?.target ?? 18} mg</span>
               </div>
               <div className="micro-track">
-                <div className="micro-fill alert-red" style={{ width: '52%' }} />
+                <div
+                  className="micro-fill alert-red"
+                  style={{
+                    width: `${Math.min(100, Math.round(((dailyStats?.iron?.consumed ?? 0) / (dailyStats?.iron?.target || 18)) * 100))}%`,
+                    backgroundColor: (dailyStats?.iron?.consumed ?? 0) >= (dailyStats?.iron?.target || 18) * 0.5 ? 'var(--forest-green)' : '#DC2626'
+                  }}
+                />
               </div>
 
               <div className="micro-bar-row" style={{ marginTop: '12px' }}>
@@ -263,7 +272,10 @@ const FoodLogging = () => {
                 <span className="micro-val">{dailyStats?.fiber?.consumed ?? 0} / {dailyStats?.fiber?.target ?? 30} g</span>
               </div>
               <div className="micro-track">
-                <div className="micro-fill safe-green" style={{ width: '80%' }} />
+                <div
+                  className="micro-fill safe-green"
+                  style={{ width: `${Math.min(100, Math.round(((dailyStats?.fiber?.consumed ?? 0) / (dailyStats?.fiber?.target || 30)) * 100))}%` }}
+                />
               </div>
             </div>
           </div>
