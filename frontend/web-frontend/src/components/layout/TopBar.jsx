@@ -113,22 +113,24 @@ const TopBar = ({ onSearch }) => {
         </div>
       )}
 
-      {/* Left: Search input */}
-      <div className="topbar-search-wrap">
-        <div className="search-icon-inside">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E857E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
+      {/* Left: Search input (only rendered on search-centric screens) */}
+      {(location.pathname === '/food-logging' || location.pathname === '/recipes') && (
+        <div className="topbar-search-wrap">
+          <div className="search-icon-inside">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E857E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            className="topbar-search-input"
+            placeholder={language === 'am' ? 'ምግቦችን፣ የምግብ አዘገጃጀቶችን ይፈልጉ...' : 'Search foods, recipes...'}
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
         </div>
-        <input
-          type="text"
-          className="topbar-search-input"
-          placeholder={language === 'am' ? 'ምግቦችን፣ የምግብ አዘገጃጀቶችን ይፈልጉ...' : 'Search foods, recipes...'}
-          value={searchTerm}
-          onChange={handleSearchChange}
-        />
-      </div>
+      )}
 
       {/* Center: Context/Page Title in Burnt Orange */}
       <div className="topbar-center-title">
