@@ -39,7 +39,11 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.error?.message || error.message || 'Login failed' };
+      let errMsg = error.response?.data?.error?.message || error.message || 'Login failed';
+      if (error.code === 'ERR_NETWORK' || !error.response) {
+        errMsg = 'Unable to connect to EthioNutri server. Please ensure the backend is running at ' + (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1');
+      }
+      return { success: false, error: errMsg };
     }
   };
 
@@ -58,7 +62,11 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.error?.message || error.message || 'Registration failed' };
+      let errMsg = error.response?.data?.error?.message || error.message || 'Registration failed';
+      if (error.code === 'ERR_NETWORK' || !error.response) {
+        errMsg = 'Unable to connect to EthioNutri server. Please ensure the backend is running at ' + (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1');
+      }
+      return { success: false, error: errMsg };
     }
   };
 
@@ -67,6 +75,8 @@ export const AuthProvider = ({ children }) => {
       ...user,
       ...updatedFields
     };
+    delete updatedUser.profile_picture;
+    delete updatedUser.profilePhotoUrl;
     setUser(updatedUser);
     localStorage.setItem('auth_user', JSON.stringify(updatedUser));
     return { success: true };
