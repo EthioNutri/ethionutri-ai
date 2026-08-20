@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useNutrition } from '../context/NutritionContext';
+import useFavoriteRecipes from '../hooks/useFavoriteRecipes';
+import FavoriteRecipeButton from '../components/recipes/FavoriteRecipeButton';
 
 const RECIPES_DATA = [
   {
@@ -331,22 +333,51 @@ const RecipesPage = () => {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [toastMsg, setToastMsg] = useState('');
 
+
+  const {
+  favoriteRecipeIds,
+  toggleFavorite,
+  isFavorite,
+} = useFavoriteRecipes();
+
   const filterChips = [
-    { id: 'all', label: language === 'am' ? 'ሁሉም ምግቦች' : 'All Recipes' },
-    { id: 'fasting', label: language === 'am' ? 'የጾም ምግቦች (Tsom)' : 'Fasting-Friendly' },
-    { id: 'high-protein', label: language === 'am' ? 'ከፍተኛ ፕሮቲን' : 'High Protein' },
-    { id: 'traditional', label: language === 'am' ? 'ባህላዊ ክላሲኮች' : 'Traditional Classics' },
-    { id: 'quick', label: language === 'am' ? 'ቀላልና ፈጣን' : 'Quick Meals' },
-  ];
+  {
+    id: 'all',
+    label: language === 'am' ? 'ሁሉም ምግቦች' : 'All Recipes',
+  },
+  {
+    id: 'favorites',
+    label: language === 'am' ? 'የተወደዱ' : 'Favorites',
+  },
+  {
+    id: 'fasting',
+    label: language === 'am' ? 'የጾም ምግቦች (Tsom)' : 'Fasting-Friendly',
+  },
+  {
+    id: 'high-protein',
+    label: language === 'am' ? 'ከፍተኛ ፕሮቲን' : 'High Protein',
+  },
+  {
+    id: 'traditional',
+    label: language === 'am' ? 'ባህላዊ ክላሲኮች' : 'Traditional Classics',
+  },
+  {
+    id: 'quick',
+    label: language === 'am' ? 'ቀላልና ፈጣን' : 'Quick Meals',
+  },
+];
 
   const filteredRecipes = useMemo(() => {
-    return RECIPES_DATA.filter((recipe) => {
-      const matchesCategory =
-        activeCategory === 'all'
-          ? true
-          : activeCategory === 'fasting'
-          ? recipe.isFasting
-          : recipe.category === activeCategory;
+  return RECIPES_DATA.filter((recipe) => {
+    const matchesCategory =
+      activeCategory === 'all'
+        ? true
+        : activeCategory === 'favorites'
+        ? favoriteRecipeIds.has(recipe.id)
+        : activeCategory === 'fasting'
+        ? recipe.isFasting
+        : recipe.category === activeCategory;
+
 
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
@@ -359,7 +390,7 @@ const RecipesPage = () => {
 
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, favoriteRecipeIds]);
 
   const handleLogRecipe = (recipe) => {
     if (!isAuthenticated) {
@@ -460,8 +491,24 @@ const RecipesPage = () => {
           {filteredRecipes.length === 0 ? (
             <div className="recipes-empty-state">
               <span className="empty-icon">🍲</span>
-              <h3>{language === 'am' ? 'ምንም አይነት ምግብ አልተገኘም' : 'No recipes found'}</h3>
-              <p>{language === 'am' ? 'እባክዎ የፍለጋ ቃሉን ይቀይሩ ወይም ማጣሪያውን ያስተካክሉ።' : 'Try adjusting your search query or selecting a different category filter.'}</p>
+             <h3>
+  {activeCategory === 'favorites'
+    ? language === 'am'
+      ? 'የተወደዱ ምግቦች የሉም'
+      : 'No favorite recipes yet'
+    : language === 'am'
+      ? 'ምንም አይነት ምግብ አልተገኘም'
+      : 'No recipes found'}
+</h3>
+              <p>
+  {activeCategory === 'favorites'
+    ? language === 'am'
+      ? 'በምግብ ካርዶች ላይ ያለውን ♡ ቁልፍ በመጫን የሚወዷቸውን ምግቦች ያስቀምጡ።'
+      : 'Tap the ♡ button on any recipe to save it here for quick access.'
+    : language === 'am'
+      ? 'እባክዎ የፍለጋ ቃሉን ይቀይሩ ወይም ማጣሪያውን ያስተካክሉ።'
+      : 'Try adjusting your search query or selecting a different category filter.'}
+</p>
               <button
                 type="button"
                 className="landing-cta-primary"
@@ -482,7 +529,12 @@ const RecipesPage = () => {
                   onClick={() => setSelectedRecipe(recipe)}
                 >
                   <div className="recipe-card-media">
-                    <img
+                <FavoriteRecipeButton
+                 isFavorite={isFavorite(recipe.id)}
+                 onToggle={() => toggleFavorite(recipe.id)}
+                 />
+
+                   <img
                       src={recipe.image}
                       alt={recipe.name}
                       className="recipe-card-img"
