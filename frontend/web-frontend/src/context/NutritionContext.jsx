@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import apiClient from '../services/apiClient';
 import { useAuth } from './AuthContext';
+import { calculateNutritionGoals } from '../utils/nutritionCalculator';
 
 const NutritionContext = createContext(null);
 
@@ -41,7 +42,7 @@ const DEFAULT_SHOPPING_LIST = [
 ];
 
 export const NutritionProvider = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [fastingCycle, setFastingCycle] = useState({
     title: 'Wednesday Fast',
@@ -51,7 +52,35 @@ export const NutritionProvider = ({ children }) => {
     allowedBadge: 'Fasting (Tsom)'
   });
 
-  const initialDailyStats = {
+  const calculatedGoals = useMemo(() => {
+    if (!user) return { calories: 2000, protein: 150, carbs: 200, fats: 65, water: 2.5, iron: 18, fiber: 30 };
+    
+    // Attempt to read from user.healthProfile or user object directly
+    const hp = user.healthProfile || {};
+    const profile = {
+      age: Number(hp.age || user.age || 28),
+      biologicalSex: (hp.biologicalSex || user.biologicalSex || user.biological_sex || 'female').toLowerCase(),
+      heightCm: Number(hp.heightCm || user.heightCm || user.height_cm || 170),
+      weightKg: Number(hp.weightKg || user.weightKg || user.weight_kg || 65),
+      targetWeightKg: Number(hp.targetWeightKg || user.targetWeightKg || user.target_weight_kg || hp.weightKg || user.weightKg || 65),
+      activityLevel: hp.activityLevel || user.activityLevel || user.activity_level || 'moderately_active',
+      healthObjective: hp.healthObjective || user.healthObjective || user.health_objective || 'weight_management'
+    };
+    
+    const goals = calculateNutritionGoals(profile);
+    
+    return {
+      calories: goals.calories,
+      protein: goals.protein,
+      carbs: goals.carbs,
+      fats: goals.fats,
+      water: goals.water,
+      iron: 18, // standard RDA
+      fiber: 30 // standard RDA
+    };
+  }, [user]);
+
+  const [dailyStats, setDailyStats] = useState({
     calories: { consumed: 0, target: 2000 },
     protein: { consumed: 0, target: 150, unit: 'g' },
     carbs: { consumed: 0, target: 200, unit: 'g' },
@@ -59,9 +88,7 @@ export const NutritionProvider = ({ children }) => {
     water: { consumed: 0, target: 2.5, unit: 'L' },
     iron: { consumed: 0, target: 18, unit: 'mg' },
     fiber: { consumed: 0, target: 30, unit: 'g' },
-  };
-
-  const [dailyStats, setDailyStats] = useState(initialDailyStats);
+  });
   const [foodLogs, setFoodLogs] = useState([]);
   const [recommendedMeal, setRecommendedMeal] = useState({
     name: 'Shiro Mitten with Teff Injera',
@@ -74,24 +101,28 @@ export const NutritionProvider = ({ children }) => {
   const [shoppingList, setShoppingList] = useState(DEFAULT_SHOPPING_LIST);
 
   // Recalculate daily totals dynamically from an array of logged meals
-  const computeStatsFromLogs = useCallback((logs, baseGoals = {}) => {
+  const computeStatsFromLogs = useCallback((logs, baseGoals = calculatedGoals) => {
     const totalCal = logs.reduce((sum, item) => sum + Number(item.calories || 0), 0);
     const totalProt = logs.reduce((sum, item) => sum + Number(item.protein || 0), 0);
     const totalCarb = logs.reduce((sum, item) => sum + Number(item.carbs || 0), 0);
     const totalFat = logs.reduce((sum, item) => sum + Number(item.fats || 0), 0);
     const totalIron = logs.reduce((sum, item) => sum + Number(item.iron || 0), 0);
-    const totalFiber = logs.reduce((sum, item) => sum + (Number(item.carbs || 0) * 0.12), 0); // Estimated fiber from teff/legumes
+    const totalFiber = logs.reduce((sum, item) => sum + (Number(item.carbs || 0) * 0.12), 0);
 
     return {
-      calories: { consumed: Math.round(totalCal), target: baseGoals.kcal_goal || 2000 },
-      protein: { consumed: Math.round(totalProt), target: baseGoals.protein_goal_g || 150, unit: 'g' },
-      carbs: { consumed: Math.round(totalCarb), target: baseGoals.carbs_goal_g || 200, unit: 'g' },
-      fats: { consumed: Math.round(totalFat), target: baseGoals.fats_goal_g || 65, unit: 'g' },
-      water: { consumed: Number(baseGoals.water_l || 0), target: baseGoals.water_goal_l || 2.5, unit: 'L' },
-      iron: { consumed: Math.round(totalIron * 10) / 10, target: baseGoals.iron_goal_mg || 18, unit: 'mg' },
-      fiber: { consumed: Math.round(totalFiber * 10) / 10, target: baseGoals.fiber_goal_g || 30, unit: 'g' },
+      calories: { consumed: Math.round(totalCal), target: baseGoals.calories || 2000 },
+      protein: { consumed: Math.round(totalProt), target: baseGoals.protein || 150, unit: 'g' },
+      carbs: { consumed: Math.round(totalCarb), target: baseGoals.carbs || 200, unit: 'g' },
+      fats: { consumed: Math.round(totalFat), target: baseGoals.fats || 65, unit: 'g' },
+      water: { consumed: 0, target: baseGoals.water || 2.5, unit: 'L' },
+      iron: { consumed: Math.round(totalIron * 10) / 10, target: baseGoals.iron || 18, unit: 'mg' },
+      fiber: { consumed: Math.round(totalFiber * 10) / 10, target: baseGoals.fiber || 30, unit: 'g' },
     };
-  }, []);
+  }, [calculatedGoals]);
+
+  useEffect(() => {
+    setDailyStats((prev) => computeStatsFromLogs(foodLogs, calculatedGoals));
+  }, [calculatedGoals, computeStatsFromLogs]);
 
   const fetchData = async () => {
     if (!isAuthenticated) return;
@@ -157,7 +188,7 @@ export const NutritionProvider = ({ children }) => {
         setFoodLogs(flatLogs);
 
         // Dynamically compute daily stats from actual flat logs
-        const computed = computeStatsFromLogs(flatLogs, dashData);
+        const computed = computeStatsFromLogs(flatLogs, calculatedGoals);
         setDailyStats(computed);
       } catch (logErr) {
         console.warn('Food logs fetch warning:', logErr);
