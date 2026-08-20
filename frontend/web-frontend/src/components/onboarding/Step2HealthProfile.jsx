@@ -98,6 +98,29 @@ const Step2HealthProfile = ({ data, onChange, onNext, onBack }) => {
           </div>
         </div>
 
+        {/* Row 3: Target Weight */}
+        <div className="form-row-2col">
+          <div>
+            <label className="form-field-label">Target Weight <span className="info-icon-badge" title="Used to calculate deficit or surplus">i</span></label>
+            <div className="input-with-unit-wrapper">
+              <input
+                type="number"
+                className="custom-text-input"
+                placeholder="Target Weight"
+                value={data.targetWeight || ''}
+                onChange={(e) => handleInputChange('targetWeight', e.target.value)}
+              />
+              <span className="input-unit-label">kg</span>
+            </div>
+            {data.targetWeight && data.weight && data.nutritionGoal === 'lose_weight' && Number(data.targetWeight) >= Number(data.weight) && (
+              <p style={{ color: 'var(--terracotta)', fontSize: '12px', marginTop: '4px' }}>Target weight should be less than current weight for weight loss.</p>
+            )}
+            {data.targetWeight && data.weight && data.nutritionGoal === 'gain_weight' && Number(data.targetWeight) <= Number(data.weight) && (
+              <p style={{ color: 'var(--terracotta)', fontSize: '12px', marginTop: '4px' }}>Target weight should be more than current weight for weight gain.</p>
+            )}
+          </div>
+        </div>
+
         {/* Activity Level */}
         <div>
           <label className="form-field-label">
