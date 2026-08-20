@@ -73,18 +73,21 @@ const Analytics = () => {
       let protein = 0;
       let carbs = 0;
       let fats = 0;
+      let fiber = 0;
 
       if (backendDay) {
         calories = backendDay.calories || 0;
         protein = backendDay.protein || 0;
         carbs = backendDay.carbs || 0;
         fats = backendDay.fats || 0;
+        fiber = backendDay.fiber || Math.round((backendDay.carbs || 0) * 0.25);
       } else if (i === 0 && foodLogs.length > 0) {
         // Fallback to today's active foodLogs in context
         calories = foodLogs.reduce((s, item) => s + Number(item.calories || 0), 0);
         protein = foodLogs.reduce((s, item) => s + Number(item.protein || 0), 0);
         carbs = foodLogs.reduce((s, item) => s + Number(item.carbs || 0), 0);
         fats = foodLogs.reduce((s, item) => s + Number(item.fats || 0), 0);
+        fiber = Math.round(carbs * 0.25);
       }
 
       days.push({
@@ -94,6 +97,7 @@ const Analytics = () => {
         protein,
         carbs,
         fats,
+        fiber,
         isFasting: fastInfo.isFasting,
         fastName: language === 'am' ? fastInfo.fastNameAm : fastInfo.fastNameEn
       });
@@ -129,8 +133,17 @@ const Analytics = () => {
       Math.round((fastingDaysList.filter((d) => d.calories > 0).length / Math.max(1, fastingDaysList.length)) * 100)
     );
 
-    const targetCal = dailyStats?.calories?.target ?? 2000;
-    const targetProt = dailyStats?.protein?.target ?? 150;
+    const targetCal = dailyStats?.calories?.target || 2000;
+    const targetProt = dailyStats?.protein?.target || 150;
+
+    // Fasting vs Regular averages computation
+    const tsomAvgFiber = tsomCount > 0 ? Math.round(fastingDaysList.reduce((s, d) => s + d.fiber, 0) / tsomCount) : 0;
+    const regAvgFiber = regCount > 0 ? Math.round(regularDaysList.reduce((s, d) => s + d.fiber, 0) / regCount) : 0;
+
+    const tsomAvgProt = tsomCount > 0 ? Math.round(fastingDaysList.reduce((s, d) => s + d.protein, 0) / tsomCount) : 0;
+    const regAvgProt = regCount > 0 ? Math.round(regularDaysList.reduce((s, d) => s + d.protein, 0) / regCount) : 0;
+
+    const fiberDiffPercent = regAvgFiber > 0 && tsomAvgFiber > 0 ? Math.round(((tsomAvgFiber - regAvgFiber) / regAvgFiber) * 100) : 0;
 
     return {
       avgCal,
@@ -139,13 +152,74 @@ const Analytics = () => {
       targetProt,
       tsomAvgCal,
       regAvgCal,
-      calDiffPercent: regAvgCal > 0 ? Math.round(((tsomAvgCal - regAvgCal) / regAvgCal) * 100) : 0,
-      fastingAdherence: countWithLogs > 0 ? (fastingAdherence > 0 ? fastingAdherence : 90) : 0,
+      tsomAvgProt,
+      regAvgProt,
+      tsomAvgFiber,
+      regAvgFiber,
+      fiberDiffPercent,
+      calDiffPercent: regAvgCal > 0 && tsomAvgCal > 0 ? Math.round(((tsomAvgCal - regAvgCal) / regAvgCal) * 100) : 0,
+      fastingAdherence: countWithLogs > 0 ? fastingAdherence : 0,
       hasAnyLogs: loggedDays.length > 0,
     };
   }, [trendDays, dailyStats]);
 
-  const maxCal = Math.max(2400, ...trendDays.map((d) => d.calories + 300));
+  // Compute chart items (Daily for Week view, Weekly aggregated buckets for Month/Cycle view)
+  const displayChartItems = useMemo(() => {
+    if (timeRange === 'week') {
+      return trendDays.map((d) => ({
+        label: d.day,
+        subLabel: d.date.split('-').slice(1).join('/'),
+        calories: d.calories,
+        protein: d.protein,
+        carbs: d.carbs,
+        fats: d.fats,
+        isFasting: d.isFasting,
+        fastName: d.fastName,
+        isAggregated: false,
+      }));
+    }
+
+    // Month or Cycle view: aggregate trendDays into weekly buckets
+    const chunks = [];
+    const totalDays = trendDays.length;
+    const chunkSize = 7;
+
+    for (let i = 0; i < totalDays; i += chunkSize) {
+      const chunkDays = trendDays.slice(i, i + chunkSize);
+      const weekIdx = Math.floor(i / chunkSize) + 1;
+      
+      const loggedDays = chunkDays.filter((d) => d.calories > 0);
+      const count = Math.max(1, loggedDays.length);
+
+      const avgCalories = Math.round(chunkDays.reduce((s, d) => s + d.calories, 0) / count);
+      const avgProtein = Math.round(chunkDays.reduce((s, d) => s + d.protein, 0) / count);
+      const avgCarbs = Math.round(chunkDays.reduce((s, d) => s + d.carbs, 0) / count);
+      const avgFats = Math.round(chunkDays.reduce((s, d) => s + d.fats, 0) / count);
+
+      const fastingDays = chunkDays.filter((d) => d.isFasting);
+      const fastingCount = fastingDays.length;
+
+      const startDateStr = chunkDays[0].date.split('-').slice(1).join('/');
+      const endDateStr = chunkDays[chunkDays.length - 1].date.split('-').slice(1).join('/');
+
+      chunks.push({
+        label: language === 'am' ? `ሳምንት ${weekIdx}` : `W${weekIdx}`,
+        subLabel: `${startDateStr}-${endDateStr}`,
+        calories: avgCalories,
+        protein: avgProtein,
+        carbs: avgCarbs,
+        fats: avgFats,
+        isFasting: fastingCount > 0,
+        fastingCount,
+        fastName: language === 'am' ? `${fastingCount} የጾም ቀናት` : `${fastingCount} Tsom Days`,
+        isAggregated: true,
+      });
+    }
+
+    return chunks;
+  }, [trendDays, timeRange, language]);
+
+  const maxCal = Math.max(2400, ...displayChartItems.map((d) => d.calories + 300));
 
   return (
     <div className="analytics-page-container">
@@ -240,16 +314,16 @@ const Analytics = () => {
             </span>
           </div>
           <div className="stat-main-num">
-            {dailyStats?.water?.consumed ?? 0} <span className="stat-unit">L / day</span>
+            {dailyStats?.water?.consumed} <span className="stat-unit">L / day</span>
           </div>
-          <div className="stat-progress-bar">
-            <div
-              className="stat-fill blue-fill"
-              style={{ width: `${Math.min(100, Math.round(((dailyStats?.water?.consumed ?? 0) / (dailyStats?.water?.target || 2.5)) * 100))}%` }}
-            />
-          </div>
-          <div className="stat-footer-text">
-            💧 {language === 'am' ? `የታለመ ግብ፡ ${dailyStats?.water?.target || 2.5}L` : `Target Goal: ${dailyStats?.water?.target || 2.5}L`}
+          <div className="stat-sub">
+            <div className="stat-progress-bar">
+              <div
+                className="stat-progress-fill"
+                style={{ width: `${Math.min(100, Math.round((dailyStats?.water?.consumed / dailyStats?.water?.target) * 100))}%` }}
+              ></div>
+            </div>
+            {language === 'am' ? `ግብ፡ ${dailyStats?.water?.target}L` : `Target Goal: ${dailyStats?.water?.target}L`}
           </div>
         </div>
 
@@ -337,23 +411,23 @@ const Analytics = () => {
           {/* Bar Visualizer */}
           <div className="chart-body-visualizer">
             <div className="chart-bars-container">
-              {trendDays.map((d, index) => {
-                const heightPercent = d.calories > 0 ? Math.max(8, Math.round((d.calories / maxCal) * 100)) : 4;
+              {displayChartItems.map((item, index) => {
+                const heightPercent = item.calories > 0 ? Math.max(8, Math.round((item.calories / maxCal) * 100)) : 4;
                 return (
                   <div key={index} className="chart-bar-column">
                     <div className="chart-bar-value-tooltip">
                       {chartMetric === 'calories'
-                        ? (d.calories > 0 ? `${d.calories}` : '0')
-                        : `P:${d.protein}g`}
+                        ? (item.calories > 0 ? `${item.calories}` : '0')
+                        : `P:${item.protein}g`}
                     </div>
 
                     <div className="bar-track">
                       {chartMetric === 'calories' ? (
                         <div
-                          className={`bar-fill-calories ${d.isFasting ? 'fasting-bar' : 'regular-bar'}`}
+                          className={`bar-fill-calories ${item.isFasting ? 'fasting-bar' : 'regular-bar'}`}
                           style={{
                             height: `${heightPercent}%`,
-                            opacity: d.calories > 0 ? 1 : 0.25
+                            opacity: item.calories > 0 ? 1 : 0.25
                           }}
                         />
                       ) : (
@@ -366,8 +440,12 @@ const Analytics = () => {
                     </div>
 
                     <div className="chart-day-label">
-                      <span className="day-name">{d.day}</span>
-                      {d.isFasting && <span className="fasting-dot" title={d.fastName}>🌱</span>}
+                      <span className="day-name">{item.label}</span>
+                      {item.isFasting && (
+                        <span className="fasting-dot" title={item.fastName}>
+                          🌱{item.isAggregated && item.fastingCount > 1 ? item.fastingCount : ''}
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
@@ -398,111 +476,179 @@ const Analytics = () => {
 
         {/* Right Column: Fasting vs Non-Fasting Comparison */}
         <div className="comparison-card-box">
-          <h3 className="chart-card-title">
-            {language === 'am' ? 'የጾም እና የፍስክ ቀናት ንጽጽር' : 'Fasting vs Non-Fasting Impact'}
-          </h3>
-          <p className="chart-card-sub">
-            {language === 'am' ? 'በጾም ወቅት የሚታይ የአመጋገብ ለውጥ' : 'Nutrient shift during Orthodox fasting traditions'}
-          </p>
+          <div className="comp-header-row">
+            <div>
+              <h3 className="chart-card-title">
+                {language === 'am' ? 'የጾም እና የፍስክ ቀናት ንጽጽር' : 'Fasting vs Non-Fasting Impact'}
+              </h3>
+              <p className="chart-card-sub">
+                {language === 'am' ? 'በጾም ወቅት የሚታይ የአመጋገብ ለውጥ' : 'Nutrient shift during Orthodox fasting traditions'}
+              </p>
+            </div>
+          </div>
 
-          <div className="comparison-metric-rows">
-            {/* Row 1: Average Calories */}
-            <div className="comp-row">
-              <div className="comp-label-wrap">
-                <span className="comp-title">{language === 'am' ? 'አማካይ ካሎሪ' : 'Average Calories'}</span>
-                <span className="comp-diff">
-                  {metrics.calDiffPercent < 0 ? `${metrics.calDiffPercent}% on Tsom` : 'Balanced on Tsom'}
+          {!metrics.hasAnyLogs ? (
+            <div className="comp-empty-box">
+              <span className="comp-empty-icon">📊</span>
+              <h4 className="comp-empty-title">
+                {language === 'am' ? 'ማነፃፀሪያ መረጃ የለም' : 'No Logged Meals in Period'}
+              </h4>
+              <p className="comp-empty-desc">
+                {language === 'am'
+                  ? 'በጾም (Tsom) እና በፍስክ ቀናት የተመገቧቸውን ምግቦች ይመዝግቡ፤ ንጽጽሩ እዚህ ይወጣል።'
+                  : 'Log your meals on both Fasting (Tsom) and Regular days during this period to view nutrition shift comparisons.'}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Legend */}
+              <div className="comp-legend-row">
+                <div className="comp-legend-item">
+                  <span className="comp-legend-dot regular-dot" />
+                  <span>{language === 'am' ? 'የፍስክ ቀን' : 'Regular Days'}</span>
+                </div>
+                <div className="comp-legend-item">
+                  <span className="comp-legend-dot tsom-dot" />
+                  <span>{language === 'am' ? 'የጾም ቀን (Tsom)' : 'Tsom Days'}</span>
+                </div>
+              </div>
+
+              <div className="comparison-metric-rows">
+                {/* Row 1: Average Calories */}
+                <div className="comp-row">
+                  <div className="comp-row-header">
+                    <span className="comp-title">{language === 'am' ? 'አማካይ ካሎሪ' : 'Average Calories'}</span>
+                    <span className="comp-badge-tag">
+                      {metrics.regAvgCal > 0 && metrics.tsomAvgCal > 0
+                        ? (metrics.calDiffPercent < 0
+                            ? `${metrics.calDiffPercent}% on Tsom`
+                            : metrics.calDiffPercent > 0
+                            ? `+${metrics.calDiffPercent}% on Tsom`
+                            : 'Balanced')
+                        : (metrics.tsomAvgCal > 0 ? 'Tsom Logged' : 'Regular Logged')}
+                    </span>
+                  </div>
+                  
+                  <div className="comp-bars-stack">
+                    <div className="comp-bar-line">
+                      <span className="comp-bar-label">{language === 'am' ? 'ፍስክ' : 'Regular'}</span>
+                      <div className="comp-bar-track">
+                        <div
+                          className="comp-bar-fill regular"
+                          style={{
+                            width: `${metrics.regAvgCal > 0 ? Math.min(100, Math.max(10, Math.round((metrics.regAvgCal / Math.max(metrics.regAvgCal, metrics.tsomAvgCal, metrics.targetCal)) * 100))) : 0}%`
+                          }}
+                        />
+                      </div>
+                      <span className="comp-bar-value">{metrics.regAvgCal > 0 ? `${metrics.regAvgCal.toLocaleString()} kcal` : '0 kcal'}</span>
+                    </div>
+
+                    <div className="comp-bar-line">
+                      <span className="comp-bar-label">{language === 'am' ? 'ጾም' : 'Tsom'}</span>
+                      <div className="comp-bar-track">
+                        <div
+                          className="comp-bar-fill tsom"
+                          style={{
+                            width: `${metrics.tsomAvgCal > 0 ? Math.min(100, Math.max(10, Math.round((metrics.tsomAvgCal / Math.max(metrics.regAvgCal, metrics.tsomAvgCal, metrics.targetCal)) * 100))) : 0}%`
+                          }}
+                        />
+                      </div>
+                      <span className="comp-bar-value">{metrics.tsomAvgCal > 0 ? `${metrics.tsomAvgCal.toLocaleString()} kcal` : '0 kcal'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 2: Protein Breakdown */}
+                <div className="comp-row">
+                  <div className="comp-row-header">
+                    <span className="comp-title">{language === 'am' ? 'የፕሮቲን ምንጭ' : 'Protein Sources'}</span>
+                    <span className="comp-badge-tag">
+                      {language === 'am' ? '100% የእፅዋት ምንጭ (በጾም)' : '100% Plant Legumes on Tsom'}
+                    </span>
+                  </div>
+
+                  <div className="comp-bars-stack">
+                    <div className="comp-bar-line">
+                      <span className="comp-bar-label">{language === 'am' ? 'ፍስክ' : 'Regular'}</span>
+                      <div className="comp-bar-track">
+                        <div
+                          className="comp-bar-fill regular"
+                          style={{
+                            width: `${metrics.regAvgProt > 0 ? Math.min(100, Math.max(10, Math.round((metrics.regAvgProt / Math.max(metrics.regAvgProt, metrics.tsomAvgProt, 1)) * 100))) : 0}%`
+                          }}
+                        />
+                      </div>
+                      <span className="comp-bar-value">{metrics.regAvgProt > 0 ? `${metrics.regAvgProt}g / day` : '0g'}</span>
+                    </div>
+
+                    <div className="comp-bar-line">
+                      <span className="comp-bar-label">{language === 'am' ? 'ጾም' : 'Tsom'}</span>
+                      <div className="comp-bar-track">
+                        <div
+                          className="comp-bar-fill tsom"
+                          style={{
+                            width: `${metrics.tsomAvgProt > 0 ? Math.min(100, Math.max(10, Math.round((metrics.tsomAvgProt / Math.max(metrics.regAvgProt, metrics.tsomAvgProt, 1)) * 100))) : 0}%`
+                          }}
+                        />
+                      </div>
+                      <span className="comp-bar-value">{metrics.tsomAvgProt > 0 ? `${metrics.tsomAvgProt}g (Plant)` : '0g'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 3: Fiber & Prebiotics */}
+                <div className="comp-row">
+                  <div className="comp-row-header">
+                    <span className="comp-title">{language === 'am' ? 'የፋይበር (Fiber) መጠን' : 'Fiber & Prebiotics'}</span>
+                    <span className="comp-badge-tag">
+                      {metrics.regAvgFiber > 0 && metrics.tsomAvgFiber > 0
+                        ? (metrics.fiberDiffPercent > 0 ? `+${metrics.fiberDiffPercent}% on Tsom` : `${metrics.fiberDiffPercent}% on Tsom`)
+                        : (language === 'am' ? 'የጤናማ ፋይበር ምንጭ' : 'Teff & Legume Fiber')}
+                    </span>
+                  </div>
+
+                  <div className="comp-bars-stack">
+                    <div className="comp-bar-line">
+                      <span className="comp-bar-label">{language === 'am' ? 'ፍስክ' : 'Regular'}</span>
+                      <div className="comp-bar-track">
+                        <div
+                          className="comp-bar-fill regular"
+                          style={{
+                            width: `${metrics.regAvgFiber > 0 ? Math.min(100, Math.max(10, Math.round((metrics.regAvgFiber / Math.max(metrics.regAvgFiber, metrics.tsomAvgFiber, 30)) * 100))) : 0}%`
+                          }}
+                        />
+                      </div>
+                      <span className="comp-bar-value">{metrics.regAvgFiber > 0 ? `${metrics.regAvgFiber}g / day` : '0g'}</span>
+                    </div>
+
+                    <div className="comp-bar-line">
+                      <span className="comp-bar-label">{language === 'am' ? 'ጾም' : 'Tsom'}</span>
+                      <div className="comp-bar-track">
+                        <div
+                          className="comp-bar-fill tsom"
+                          style={{
+                            width: `${metrics.tsomAvgFiber > 0 ? Math.min(100, Math.max(10, Math.round((metrics.tsomAvgFiber / Math.max(metrics.regAvgFiber, metrics.tsomAvgFiber, 30)) * 100))) : 0}%`
+                          }}
+                        />
+                      </div>
+                      <span className="comp-bar-value">{metrics.tsomAvgFiber > 0 ? `${metrics.tsomAvgFiber}g (Teff)` : '0g'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick takeaway banner */}
+              <div className="comp-takeaway-banner">
+                <span className="takeaway-icon">💡</span>
+                <span className="takeaway-text">
+                  <strong>{language === 'am' ? 'የአመጋገብ ምክር፡' : 'Fasting Insight:'}</strong>{' '}
+                  {language === 'am'
+                    ? 'በጾም ቀናት የፋይበር መጠንዎ ከፍተኛ ነው። የብረት ውህደትን ለማሳደግ ሽሮ ወይም ምስር ሲመገቡ ሎሚ ማከልዎን አይርሱ።'
+                    : 'Your fiber intake peaks on fasting days thanks to Teff Injera & lentils. Pair with fresh citrus to optimize iron absorption.'}
                 </span>
               </div>
-              <div className="comp-double-bars">
-                <div className="comp-bar-item">
-                  <span className="bar-name">{language === 'am' ? 'ፍስክ' : 'Regular'}</span>
-                  <div className="bar-bg">
-                    <div
-                      className="bar-fg regular"
-                      style={{ width: `${Math.min(100, Math.round((metrics.regAvgCal / 2400) * 100))}%` }}
-                    >
-                      {metrics.regAvgCal || 1900} kcal
-                    </div>
-                  </div>
-                </div>
-                <div className="comp-bar-item">
-                  <span className="bar-name">{language === 'am' ? 'ጾም' : 'Tsom'}</span>
-                  <div className="bar-bg">
-                    <div
-                      className="bar-fg tsom"
-                      style={{ width: `${Math.min(100, Math.round((metrics.tsomAvgCal / 2400) * 100))}%` }}
-                    >
-                      {metrics.tsomAvgCal || 1350} kcal
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Row 2: Protein Sources */}
-            <div className="comp-row">
-              <div className="comp-label-wrap">
-                <span className="comp-title">{language === 'am' ? 'የፕሮቲን ምንጭ' : 'Protein Sources'}</span>
-                <span className="comp-diff">{language === 'am' ? '100% የእፅዋት ምንጭ' : '100% Plant Legumes'}</span>
-              </div>
-              <div className="comp-double-bars">
-                <div className="comp-bar-item">
-                  <span className="bar-name">{language === 'am' ? 'ፍስክ' : 'Regular'}</span>
-                  <div className="bar-bg">
-                    <div className="bar-fg regular" style={{ width: '70%' }}>
-                      {language === 'am' ? 'ዶሮ፣ ስጋ እና እንቁላል' : 'Poultry, Meat & Eggs'}
-                    </div>
-                  </div>
-                </div>
-                <div className="comp-bar-item">
-                  <span className="bar-name">{language === 'am' ? 'ጾም' : 'Tsom'}</span>
-                  <div className="bar-bg">
-                    <div className="bar-fg tsom" style={{ width: '85%' }}>
-                      {language === 'am' ? 'ሽሮ፣ ምስር እና አተር' : 'Shiro, Misir & Lentils'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Row 3: Fiber & Prebiotics */}
-            <div className="comp-row">
-              <div className="comp-label-wrap">
-                <span className="comp-title">{language === 'am' ? 'የፋይበር (Fiber) መጠን' : 'Fiber & Prebiotics'}</span>
-                <span className="comp-diff">+40% on Tsom (Teff)</span>
-              </div>
-              <div className="comp-double-bars">
-                <div className="comp-bar-item">
-                  <span className="bar-name">{language === 'am' ? 'ፍስክ' : 'Regular'}</span>
-                  <div className="bar-bg">
-                    <div className="bar-fg regular" style={{ width: '55%' }}>
-                      ~22g Fiber
-                    </div>
-                  </div>
-                </div>
-                <div className="comp-bar-item">
-                  <span className="bar-name">{language === 'am' ? 'ጾም' : 'Tsom'}</span>
-                  <div className="bar-bg">
-                    <div className="bar-fg tsom" style={{ width: '90%' }}>
-                      ~36g Fiber (Teff)
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick takeaway badge */}
-          <div className="comp-takeaway-banner">
-            <span className="takeaway-icon">💡</span>
-            <span className="takeaway-text">
-              <strong>{language === 'am' ? 'የአመጋገብ ምክር፡' : 'Fasting Insight:'}</strong>{' '}
-              {language === 'am'
-                ? 'በጾም ቀናት የፋይበር መጠንዎ ከፍተኛ ነው። የብረት ውህደትን ለማሳደግ ሽሮ ወይም ምስር ሲመገቡ ሎሚ ማከልዎን አይርሱ።'
-                : 'Your fiber intake peaks on fasting days thanks to Teff Injera. To optimize iron absorption from lentils, always pair with fresh citrus.'}
-            </span>
-          </div>
+            </>
+          )}
         </div>
       </div>
 
