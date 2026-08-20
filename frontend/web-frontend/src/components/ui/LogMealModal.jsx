@@ -277,7 +277,7 @@ const LogMealModal = ({ isOpen, onClose, initialMode = 'manual', defaultCategory
       iron: Number(parsedVoiceEntry.iron),
       category: parsedVoiceEntry.category,
       isTsom: parsedVoiceEntry.isTsom,
-      image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=400&q=80'
+      image: '/images/foods/beyaynetu_platter.jpg',
     });
 
     onClose();
@@ -304,7 +304,7 @@ const LogMealModal = ({ isOpen, onClose, initialMode = 'manual', defaultCategory
       iron,
       category,
       isTsom: selectedFood ? selectedFood.isTsom : true,
-      image: selectedFood ? 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=400&q=80' : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
+      image: '/images/foods/beyaynetu_platter.jpg',
     });
 
     onClose();
