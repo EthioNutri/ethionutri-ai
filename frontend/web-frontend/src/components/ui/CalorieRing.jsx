@@ -2,11 +2,12 @@ import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
 const CalorieRing = ({
-  consumed = 1240,
-  target = 2100,
+  consumed = 0,
+  target = 2000,
   size = 220,
   strokeWidth = 14,
-  label = "kcal eaten"
+  label = "kcal eaten",
+  macroCompliancePercent = null
 }) => {
   const { isDark } = useTheme();
   const outerRadius = (size - strokeWidth) / 2;
@@ -20,10 +21,14 @@ const CalorieRing = ({
   const outerArcLength = (totalArcAngle / 360) * outerCircumference;
   const innerArcLength = (totalArcAngle / 360) * innerCircumference;
 
-  // Progress Percentages
-  const caloriePercent = Math.min(1, consumed / target);
-  const mintPercent = 0.68; // Representing carbs / compliant macro fill
-  const terracottaPercent = 0.42; // Representing calories / protein progress
+  // Progress Percentages dynamically computed
+  const safeTarget = target > 0 ? target : 2000;
+  const caloriePercent = Math.min(1, Math.max(0, consumed / safeTarget));
+  
+  // Secondary inner ring represents either macro compliance or proportional protein progress
+  const innerPercent = macroCompliancePercent !== null
+    ? Math.min(1, Math.max(0, macroCompliancePercent))
+    : Math.min(1, caloriePercent * 0.9);
 
   // Colors based on theme
   const trackColor = isDark ? '#252728' : '#EAE5DF';
@@ -47,40 +52,44 @@ const CalorieRing = ({
           transform={`rotate(90 ${size / 2} ${size / 2})`}
         />
 
-        {/* Outer Peach/Terracotta Progress Arc */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={outerRadius}
-          fill="none"
-          stroke={outerColor}
-          strokeWidth={strokeWidth}
-          strokeDasharray={`${outerArcLength * terracottaPercent} ${outerCircumference}`}
-          strokeDashoffset={-((360 - totalArcAngle) / 2 / 360) * outerCircumference}
-          strokeLinecap="round"
-          transform={`rotate(90 ${size / 2} ${size / 2})`}
-          style={{ transition: 'stroke-dasharray 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}
-        />
+        {/* Outer Peach/Terracotta Progress Arc (Dynamic Calories) */}
+        {caloriePercent > 0 && (
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={outerRadius}
+            fill="none"
+            stroke={outerColor}
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${outerArcLength * caloriePercent} ${outerCircumference}`}
+            strokeDashoffset={-((360 - totalArcAngle) / 2 / 360) * outerCircumference}
+            strokeLinecap="round"
+            transform={`rotate(90 ${size / 2} ${size / 2})`}
+            style={{ transition: 'stroke-dasharray 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}
+          />
+        )}
 
-        {/* Inner Mint Green Progress Arc */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={innerRadius}
-          fill="none"
-          stroke={innerColor}
-          strokeWidth={strokeWidth - 2}
-          strokeDasharray={`${innerArcLength * mintPercent} ${innerCircumference}`}
-          strokeDashoffset={-((360 - totalArcAngle) / 2 / 360) * innerCircumference}
-          strokeLinecap="round"
-          transform={`rotate(90 ${size / 2} ${size / 2})`}
-          style={{ transition: 'stroke-dasharray 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}
-        />
+        {/* Inner Mint Green Progress Arc (Dynamic Secondary Progress) */}
+        {innerPercent > 0 && (
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={innerRadius}
+            fill="none"
+            stroke={innerColor}
+            strokeWidth={strokeWidth - 2}
+            strokeDasharray={`${innerArcLength * innerPercent} ${innerCircumference}`}
+            strokeDashoffset={-((360 - totalArcAngle) / 2 / 360) * innerCircumference}
+            strokeLinecap="round"
+            transform={`rotate(90 ${size / 2} ${size / 2})`}
+            style={{ transition: 'stroke-dasharray 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}
+          />
+        )}
       </svg>
       
       {/* Centered Calorie Number */}
       <div className="calorie-ring-center">
-        <div className="calorie-number">{consumed.toLocaleString()}</div>
+        <div className="calorie-number">{Math.round(consumed).toLocaleString()}</div>
         <div className="calorie-label">{label}</div>
       </div>
     </div>
