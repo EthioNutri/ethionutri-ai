@@ -101,33 +101,32 @@ const Dashboard = () => {
               />
             </div>
 
-            {/* 2x2 Macro Grid */}
             <div className="macros-quad-grid">
               <MacroCard
                 name={language === 'am' ? 'ፕሮቲን' : 'Protein'}
                 consumed={dailyStats?.protein?.consumed ?? 0}
-                target={dailyStats?.protein?.target ?? 150}
+                target={dailyStats?.protein?.target}
                 unit={dailyStats?.protein?.unit ?? 'g'}
                 color="#F4A876" // Terracotta / Peach
               />
               <MacroCard
                 name={language === 'am' ? 'ካርቦሃይድሬት' : 'Carbs'}
                 consumed={dailyStats?.carbs?.consumed ?? 0}
-                target={dailyStats?.carbs?.target ?? 200}
+                target={dailyStats?.carbs?.target}
                 unit={dailyStats?.carbs?.unit ?? 'g'}
                 color="#7FD9A8" // Mint / Teal-Green
               />
               <MacroCard
                 name={language === 'am' ? 'ስብ (ቅባት)' : 'Fats'}
                 consumed={dailyStats?.fats?.consumed ?? 0}
-                target={dailyStats?.fats?.target ?? 65}
+                target={dailyStats?.fats?.target}
                 unit={dailyStats?.fats?.unit ?? 'g'}
                 color="#E5A65E" // Warm Amber
               />
               <MacroCard
                 name={language === 'am' ? 'ውሃ' : 'Water'}
                 consumed={dailyStats?.water?.consumed ?? 0}
-                target={dailyStats?.water?.target ?? 2.5}
+                target={dailyStats?.water?.target}
                 unit={dailyStats?.water?.unit ?? 'L'}
                 isWater={true}
               />
