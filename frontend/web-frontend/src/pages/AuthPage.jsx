@@ -140,7 +140,11 @@ const AuthPage = ({ initialMode = 'signup' }) => {
     if (result.success) {
       navigate('/dashboard', { replace: true });
     } else {
-      showMessage(language === 'am' ? 'የተሳሳተ ኢሜይል ወይም የይለፍ ቃል' : 'Invalid email or password');
+      showMessage(
+        result.error || (language === 'am'
+          ? 'የተሳሳተ ኢሜይል ወይም የይለፍ ቃል። እባክዎ መረጃዎን አረጋግጠው እንደገና ይሞክሩ።'
+          : 'Invalid email or password. Please verify your credentials and try again.')
+      );
     }
   };
 
@@ -269,8 +273,23 @@ const AuthPage = ({ initialMode = 'signup' }) => {
               <span>{language === 'am' ? 'ወይም በኢሜይል ይመዝገቡ' : 'or use your email for registration'}</span>
 
               {errorMsg && isActive && (
-                <div className="auth-msg-pill error">
-                  {errorMsg}
+                <div style={{
+                  background: '#FFDAD6',
+                  border: '1px solid #BA1A1A',
+                  color: '#410002',
+                  borderRadius: '10px',
+                  padding: '10px 14px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  margin: '10px 0'
+                }}>
+                  <span>⚠️</span>
+                  <span>{errorMsg}</span>
                 </div>
               )}
 
@@ -335,19 +354,25 @@ const AuthPage = ({ initialMode = 'signup' }) => {
               <span>{language === 'am' ? 'ወይም በኢሜይልና የይለፍ ቃል ይግቡ' : 'or use your email & password'}</span>
 
               {errorMsg && !isActive && (
-                <div className="auth-msg-pill error">
-                  {errorMsg}
+                <div style={{
+                  background: '#FFDAD6',
+                  border: '1px solid #BA1A1A',
+                  color: '#410002',
+                  borderRadius: '10px',
+                  padding: '10px 14px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  margin: '10px 0'
+                }}>
+                  <span>⚠️</span>
+                  <span>{errorMsg}</span>
                 </div>
               )}
-
-              {/* Quick Demo Fill Pill */}
-              <div
-                className="demo-credentials-pill"
-                onClick={() => setSignInData({ email: 'test@example.com', password: 'password' })}
-                title="Click to prefill test credentials"
-              >
-                ⚡ Quick Demo: test@example.com / password
-              </div>
 
               <input
                 type="email"
