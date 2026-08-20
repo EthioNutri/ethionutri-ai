@@ -38,32 +38,34 @@
 
 /* Dark Mode Variables matching Landing Page */
 html.dark, body.dark, [data-theme="dark"], .dark {
-  --ethiocream-bg: #121212;
-  --ethiocream-gradient: linear-gradient(180deg, #121212 0%, #161616 100%);
-  --sidebar-bg: #1C1C1E;
+  --ethiocream-bg: #1A1816;
+  --ethiocream-gradient: linear-gradient(180deg, #1A1816 0%, #231F1C 100%);
+  --sidebar-bg: #2B2622;
   
   --forest-green: #7FD9A8;
   --forest-green-hover: #98E4BC;
-  --forest-green-light: #16281E;
+  --forest-green-light: #1E2E25;
   
   --terracotta: #E8935C;
   --terracotta-hover: #F4A876;
-  --terracotta-light: #2A1C14;
-  --terracotta-gradient: linear-gradient(135deg, #E8935C 0%, #A8571E 100%);
+  --terracotta-light: #35261C;
+  --terracotta-gradient: linear-gradient(135deg, #E8935C 0%, #C97B3D 100%);
   
-  --alert-red-bg: #2B1414;
-  --alert-red-text: #F7CCCC;
-  --alert-red-border: #6B2C2C;
+  --alert-red-bg: #351C1C;
+  --alert-red-text: #FCA5A5;
+  --alert-red-border: #7F1D1D;
   
-  --water-blue-bg: #16202B;
+  --water-blue-bg: #1A2633;
   --water-blue-accent: #7FAAFF;
   
-  --card-bg: #1C1C1E;
+  --card-bg: #2B2622;
+  --card-surface: #352F2B;
+  --card-border: #404943;
   --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   --card-shadow-hover: 0 8px 26px rgba(0, 0, 0, 0.6);
   
-  --text-dark: #FFFFFF;
-  --text-medium: #D0D0D0;
+  --text-dark: #F9EFE8;
+  --text-medium: #C0C9C1;
   --text-light: #A8A8A0;
 }
 
@@ -2384,6 +2386,23 @@ html.dark, body.dark, [data-theme="dark"], .dark {
   grid-template-columns: 320px 1fr;
   gap: 24px;
   align-items: start;
+}
+
+.nutritionist-fullwidth-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.nutritionist-fullwidth-layout .secure-chat-card {
+  width: 100%;
+  min-height: 520px;
+}
+
+.nutritionist-fullwidth-layout .chat-messages-viewport {
+  min-height: 360px;
+  max-height: 560px;
 }
 
 .dietitian-profile-column {
