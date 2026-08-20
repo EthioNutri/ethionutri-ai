@@ -28,6 +28,7 @@ const ETHIOPIAN_FOOD_POOL = {
   breakfast: [
     {
       name: 'Kinche with Niter Kibbeh',
+      image: '/images/foods/kinche_bowl.jpg',
       amharic: 'ቂንጬ በቅቤ',
       calories: 320,
       protein: '8g',
@@ -40,7 +41,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: false,
       isHeritage: true,
       prepTimeMin: 15,
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/kinche_bowl.jpg',
     },
     {
       name: 'Kinche with Olive Oil & Suff (Sunflower)',
@@ -56,7 +57,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 15,
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/kinche_bowl.jpg',
     },
     {
       name: 'Genfo (Barley Porridge) with Niter Kibbeh & Berbere',
@@ -72,7 +73,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: false,
       isHeritage: true,
       prepTimeMin: 20,
-      image: 'https://images.unsplash.com/photo-1505253758473-96b7015fcd40?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/genfo_bowl.jpg',
     },
     {
       name: 'Genfo with Spiced Olive Oil & Berbere (Tsom)',
@@ -88,7 +89,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 20,
-      image: 'https://images.unsplash.com/photo-1505253758473-96b7015fcd40?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/genfo_bowl.jpg',
     },
     {
       name: 'Chechebsa (Kita Firfir) with Spiced Oil & Honey',
@@ -104,7 +105,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 15,
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/chechebsa_plate.jpg',
     },
     {
       name: 'Scrambled Eggs with Tomatoes & Green Peppers',
@@ -120,7 +121,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: false,
       isHeritage: true,
       prepTimeMin: 12,
-      image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/scrambled_eggs.jpg',
     },
     {
       name: 'Telba (Flaxseed Porridge & Drink)',
@@ -136,7 +137,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 10,
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/telba_drink.jpg',
     }
   ],
   lunch: [
@@ -156,7 +157,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 20,
-      image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/shiro_pot.jpg',
     },
     {
       name: 'Spicy Misir Wot with Steamed Gomen & Injera',
@@ -174,7 +175,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 25,
-      image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/misir_wot.jpg',
     },
     {
       name: 'Kik Alicha with Duba Wot & Fosolia',
@@ -190,7 +191,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 25,
-      image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/kik_alicha.jpg',
     },
     {
       name: 'Doro Wat with Brown Teff Injera & Boiled Egg',
@@ -208,7 +209,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: false,
       isHeritage: true,
       prepTimeMin: 50,
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/scrambled_eggs.jpg',
     },
     {
       name: 'Beef Tibs with Awaze, Salad & Injera',
@@ -226,7 +227,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: false,
       isHeritage: true,
       prepTimeMin: 20,
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/beef_tibs.jpg',
     },
     {
       name: 'Tibs Firfir with Green Pepper & Ayib',
@@ -242,7 +243,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: false,
       isHeritage: true,
       prepTimeMin: 18,
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/beef_tibs.jpg',
     },
     {
       name: 'Beyaynetu (Grand Fasting Platter with 6 Stews)',
@@ -260,7 +261,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 30,
-      image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/beyaynetu_platter.jpg',
     }
   ],
   dinner: [
@@ -278,7 +279,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 20,
-      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/shiro_pot.jpg',
     },
     {
       name: 'Fasolia (Green Beans & Carrots) & Steamed Gomen',
@@ -294,7 +295,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 18,
-      image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/beyaynetu_platter.jpg',
     },
     {
       name: 'Dinich Alicha (Turmeric Potato Stew) & Injera',
@@ -310,7 +311,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 20,
-      image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/kik_alicha.jpg',
     },
     {
       name: 'Shimbra Asa Wat (Spiced Chickpea Dumplings)',
@@ -328,7 +329,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 30,
-      image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/beyaynetu_platter.jpg',
     },
     {
       name: 'Azifa (Whole Green Lentil Salad with Mustard & Ginger)',
@@ -346,7 +347,7 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 15,
-      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/azifa_salad.jpg',
     },
     {
       name: 'Buticha (Chickpea Flour Scramble with Lemon & Jalapeño)',
@@ -362,13 +363,15 @@ const ETHIOPIAN_FOOD_POOL = {
       isTsom: true,
       isHeritage: true,
       prepTimeMin: 15,
-      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=80',
+      image: '/images/foods/beyaynetu_platter.jpg',
     }
   ]
 };
 
 const MealPlanningContent = () => {
-  const { dailyStats = { calories: { target: 2000 }, protein: { target: 150 } } } = useNutrition() || {};
+  const { dailyStats, user } = useNutrition() || {};
+  const [dayOverrides, setDayOverrides] = useState({});
+  const [shufflingDays, setShufflingDays] = useState({});
   const { language } = useLanguage();
 
   const [activeFilter, setActiveFilter] = useState('All');
@@ -445,24 +448,128 @@ const MealPlanningContent = () => {
         dMeal = ETHIOPIAN_FOOD_POOL.dinner[(hash + 2) % ETHIOPIAN_FOOD_POOL.dinner.length];
       }
 
+      const fullDate = d.toISOString().split('T')[0];
+      const overrideKey = fullDate;
+      const override = dayOverrides[overrideKey] || dayOverrides[dayTitle];
+
+      const defaultMeals = [
+        { type: language === 'am' ? 'ቁርስ' : 'BREAKFAST', ...bMeal },
+        { type: language === 'am' ? 'ምሳ' : 'LUNCH', ...lMeal },
+        { type: language === 'am' ? 'እራት' : 'DINNER', ...dMeal },
+      ];
+
       return {
         day: dayTitle,
         date: dateStr,
         rawDate: d,
-        fullDate: d.toISOString().split('T')[0],
+        fullDate,
         isTsom,
         tsomBadge: isWednesday ? (language === 'am' ? 'የረቡዕ ፆም' : 'Wednesday Fast') : isFriday ? (language === 'am' ? 'የአርብ ፆም' : 'Friday Fast') : undefined,
         aiSynced: true,
-        meals: [
-          { type: language === 'am' ? 'ቁርስ' : 'BREAKFAST', ...bMeal },
-          { type: language === 'am' ? 'ምሳ' : 'LUNCH', ...lMeal },
-          { type: language === 'am' ? 'እራት' : 'DINNER', ...dMeal },
-        ]
+        meals: override?.meals || defaultMeals,
+        dailyTotals: override?.dailyTotals
       };
     });
   }, [currentWeekOffset, getStartOfWeek, language]);
 
   // Formatted active week string (e.g., "Aug 18 - Aug 24" or "ኦገስት 18 - ኦገስት 24")
+  
+  const handleShuffleDay = async (dayPlan, action = 'shuffle_and_stack') => {
+    const dayKey = dayPlan.fullDate || dayPlan.day;
+    if (shufflingDays[dayKey]) return;
+
+    setShufflingDays((prev) => ({ ...prev, [dayKey]: true }));
+
+    try {
+      const payload = {
+        day: dayKey,
+        currentMeals: dayPlan.meals,
+        dailyCalorieTarget: dailyStats?.calories?.target || 2000,
+        macroTargets: {
+          protein: dailyStats?.protein?.target || 150,
+          carbs: dailyStats?.carbs?.target || 250,
+          fats: dailyStats?.fats?.target || 65
+        },
+        fastingActive: dayPlan.isTsom,
+        primaryGoal: user?.healthProfile?.healthObjective || 'weight_management',
+        medicalFlags: user?.healthProfile?.medicalFlags || [],
+        action
+      };
+
+      const res = await apiClient.post('/meal-plans/shuffle-day', payload);
+      const data = res.data;
+
+      if (data && data.success === false && data.message) {
+        setToastMsg(data.message);
+        return;
+      }
+
+      if (data && data.meals && Array.isArray(data.meals)) {
+        const formattedMeals = data.meals.map((m) => {
+          let typeLabel = m.mealType?.toUpperCase() || 'MEAL';
+          if (language === 'am') {
+            if (m.mealType === 'breakfast') typeLabel = 'ቁርስ';
+            else if (m.mealType === 'lunch') typeLabel = 'ምሳ';
+            else if (m.mealType === 'dinner') typeLabel = 'እራት';
+            else if (m.mealType === 'snack') typeLabel = 'መክሰስ';
+          }
+
+          return {
+            type: typeLabel,
+            name: m.name,
+            amharic: m.amharic,
+            calories: m.calories,
+            protein: `${m.proteinG}g`,
+            proteinG: m.proteinG,
+            carbsG: m.carbsG,
+            fatsG: m.fatsG,
+            tag: m.tag || (m.isTsom ? 'FASTING (TSOM)' : 'AI BALANCED'),
+            tagAmharic: m.isTsom ? 'የጾም ምግብ' : 'የተመጣጠነ',
+            tagType: m.tagType || (m.isTsom ? 'tsom' : 'prot'),
+            isTsom: m.isTsom,
+            prepTimeMin: m.prepTimeMin || 20,
+            image: '/images/foods/beyaynetu_platter.jpg',
+          };
+        });
+
+        setDayOverrides((prev) => ({
+          ...prev,
+          [dayKey]: {
+            meals: formattedMeals,
+            dailyTotals: data.dailyTotals
+          }
+        }));
+
+        if (data.targetsMet) {
+          setToastMsg(
+            language === 'am'
+              ? `✨ ለ${dayPlan.day} የተመጣጠነ ምግብ በ AI ተዘጋጅቷል!`
+              : `✨ AI Shuffled & Balanced menu for ${dayPlan.day}!`
+          );
+        } else {
+          const diff = Math.abs((data.dailyTotals?.calories || 0) - payload.dailyCalorieTarget);
+          setToastMsg(
+            language === 'am'
+              ? `⚡ የ${dayPlan.day} ምግብ ከታለመው ግብ በ${diff} ኪ.ካሎሪ ይለያል።`
+              : `⚡ Shuffled menu for ${dayPlan.day} is close to your targets (off by ${diff} kcal).`
+          );
+        }
+      } else {
+        throw new Error("Invalid response format from server");
+      }
+    } catch (err) {
+      console.error("Shuffle Day error:", err);
+      setToastMsg(
+        language === 'am'
+          ? `⚠️ ለ${dayPlan.day} ምግብ መቀየር አልተሳካም። የቀድሞው ምግብ አልተቀየረም።`
+          : `⚠️ Couldn't shuffle meals for ${dayPlan.day}. Your existing menu was preserved.`
+      );
+    } finally {
+      setShufflingDays((prev) => ({ ...prev, [dayKey]: false }));
+      setTimeout(() => setToastMsg(''), 4000);
+    }
+  };
+
   const activeWeekRangeStr = useMemo(() => {
     if (weeklyPlanDays.length === 0) return language === 'am' ? 'የአሁኑ ሳምንት' : 'Current Week';
     return `${weeklyPlanDays[0].date} - ${weeklyPlanDays[6].date}`;
@@ -723,11 +830,13 @@ const MealPlanningContent = () => {
                       <div className="day-name-title" style={{ fontSize: '16px', fontWeight: 800, color: colors.primary }}>{dayPlan.day}</div>
                       <div className="day-date-sub" style={{ fontSize: '12px', color: colors.textSub }}>{dayPlan.date}</div>
                     </div>
-                    {dayPlan.isTsom && (
-                      <span className="day-tsom-indicator" style={{ background: colors.accentLight, color: colors.accent, border: `1px solid ${colors.accent}`, fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '12px' }}>
-                        🌱 {dayPlan.tsomBadge || (language === 'am' ? 'የጾም ቀን' : 'Fasting')}
-                      </span>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {dayPlan.isTsom && (
+                        <span className="day-tsom-indicator" style={{ background: colors.accentLight, color: colors.accent, border: `1px solid ${colors.accent}`, fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '12px' }}>
+                          🌱 {dayPlan.tsomBadge || (language === 'am' ? 'የጾም ቀን' : 'Fasting')}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Meal Slots */}
@@ -791,10 +900,8 @@ const MealPlanningContent = () => {
                     {/* Add Snack Slot */}
                     <button
                       className="btn-add-snack-slot"
-                      onClick={() => {
-                        setToastMsg(language === 'am' ? '✨ የቆሎ እና የተልባ መክሰስ ታክሏል' : '✨ Added Roasted Kolo & Telba snack to schedule');
-                        setTimeout(() => setToastMsg(''), 3000);
-                      }}
+                      onClick={() => handleShuffleDay(dayPlan, 'add_snack')}
+                      disabled={shufflingDays[dayPlan.fullDate || dayPlan.day]}
                       style={{
                         marginTop: 'auto',
                         padding: '8px',
@@ -804,7 +911,8 @@ const MealPlanningContent = () => {
                         color: colors.accent,
                         fontSize: '12px',
                         fontWeight: 700,
-                        cursor: 'pointer'
+                        cursor: shufflingDays[dayPlan.fullDate || dayPlan.day] ? 'wait' : 'pointer',
+                        opacity: shufflingDays[dayPlan.fullDate || dayPlan.day] ? 0.6 : 1
                       }}
                     >
                       + {language === 'am' ? 'መክሰስ ጨምር' : 'Add Snack'}
@@ -829,7 +937,7 @@ const MealPlanningContent = () => {
             <div className="summary-ring-wrap" style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
               <CalorieRing
                 consumed={weeklySummary.avgCal}
-                target={dailyStats?.calories?.target || 2000}
+                target={dailyStats?.calories?.target}
                 size={180}
                 label={language === 'am' ? 'ኪ.ካሎሪ / ቀን' : 'kcal / day'}
               />
