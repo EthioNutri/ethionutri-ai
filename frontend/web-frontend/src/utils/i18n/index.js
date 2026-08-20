@@ -113,7 +113,45 @@ export const translations = {
     carbs: 'Carbs',
     fat: 'Healthy Fats',
     viewDashboard: 'Go to Dashboard',
-    retakeOnboarding: 'Edit Preferences'
+    retakeOnboarding: 'Edit Preferences',
+
+    // Food Items
+    foods: {
+      shiroWat: 'Shiro Wat',
+      shiroTegabino: 'Shiro Tegabino',
+      misirWat: 'Misir Wat',
+      kikAlicha: 'Kik Alicha',
+      injera: 'Teff Injera',
+      kinche: 'Kinche',
+      gomen: 'Steamed Gomen',
+      gomenBesiga: 'Gomen Besiga',
+      doroWat: 'Doro Wat',
+      genfo: 'Barley Genfo',
+      tibs: 'Beef Tibs',
+      tibsFirfir: 'Tibs Firfir',
+      azifa: 'Azifa (Green Lentil Salad)',
+      buticha: 'Buticha (Chickpea Scramble)',
+      fosolia: 'Fosolia (Green Beans & Carrots)',
+      shimbraAsa: 'Shimbra Asa Wat',
+      telba: 'Telba (Flaxseed Drink)',
+      chechebsa: 'Chechebsa (Kita Firfir)',
+      dubaWat: 'Duba Wat (Pumpkin Stew)',
+      dinichAlicha: 'Dinich Alicha (Potato Stew)',
+      beyaynetu: 'Beyaynetu (Fasting Platter)',
+      ayib: 'Ayib (Cottage Cheese)',
+      kolo: 'Roasted Kolo'
+    },
+
+    // Categories & Tags
+    categories: {
+      all: 'All',
+      fasting: 'Fasting-Friendly (Tsom)',
+      highProtein: 'High Protein',
+      traditional: 'Traditional Heritage',
+      quick: 'Quick Meals (<20m)',
+      vegan: 'Vegan',
+      vegetarian: 'Vegetarian'
+    }
   },
   am: {
     // Brand & General
@@ -229,6 +267,107 @@ export const translations = {
     carbs: 'ካርቦሃይድሬት',
     fat: 'ጤናማ ቅባት',
     viewDashboard: 'ወደ ዳሽቦርድ ሂድ',
-    retakeOnboarding: 'ምርጫዎችን አሻሽል'
+    retakeOnboarding: 'ምርጫዎችን አሻሽል',
+
+    // Food Items
+    foods: {
+      shiroWat: 'ሽሮ ወጥ',
+      shiroTegabino: 'ተጋቢኖ ሽሮ',
+      misirWat: 'የምስር ወጥ',
+      kikAlicha: 'የክትክት አልጫ / ክክ አልጫ',
+      injera: 'የጤፍ እንጀራ',
+      kinche: 'ቂንጬ',
+      gomen: 'የሀበሻ ጎመን',
+      gomenBesiga: 'ጎመን በስጋ',
+      doroWat: 'የዶሮ ወጥ',
+      genfo: 'የገብስ ገንፎ',
+      tibs: 'የበሬ ጥብስ',
+      tibsFirfir: 'ጥብስ ፍርፍር ከአይብ ጋር',
+      azifa: 'አዚፋ በሰናፍጭ እና ቃሪያ',
+      buticha: 'ቡቲቻ በሎሚ',
+      fosolia: 'ፋሶሊያ እና ካሮት',
+      shimbraAsa: 'ሽምብራ አሳ ወጥ',
+      telba: 'የተልባ ገንፎ እና መጠጥ',
+      chechebsa: 'ጨጨብሳ በቅመም ዘይት',
+      dubaWat: 'ዱባ ወጥ',
+      dinichAlicha: 'ድንች አልጫ',
+      beyaynetu: 'የጾም በያይነቱ',
+      ayib: 'የሀበሻ አይብ',
+      kolo: 'የተቆላ ቆሎ',
+      timatimSalata: 'የቲማቲም ሰላጣ',
+      bula: 'የቡላ ገንፎ',
+      suffFitfit: 'የሱፍ ፍትፍት',
+      kocho: 'ቆጮ'
+    },
+
+    // Categories & Tags
+    categories: {
+      all: 'ሁሉም',
+      fasting: 'የጾም ምግብ',
+      highProtein: 'ከፍተኛ ፕሮቲን',
+      traditional: 'ባህላዊ ቅርስ',
+      quick: 'ፈጣን ምግቦች (<20ደ)',
+      vegan: 'ቪጋን (የእጽዋት)',
+      vegetarian: 'ቬጀቴሪያን'
+    }
   }
+};
+
+// Helper lookup for food translation
+export const translateFoodName = (name, lang = 'en') => {
+  if (!name) return '';
+  if (lang !== 'am') return name;
+  const map = {
+    'Shiro Wat': 'ሽሮ ወጥ',
+    'Shiro Mitten': 'ምጥን ሽሮ ወጥ',
+    'Shiro Tegabino': 'ተጋቢኖ ሽሮ',
+    'Shiro Tegabino with Gibto (Lupin) & Teff Injera': 'ተጋቢኖ ሽሮ በግብጦ እና ጤፍ እንጀራ',
+    'Misir Wat': 'የምስር ወጥ',
+    'Spicy Misir Wat': 'ቅመም የምስር ወጥ',
+    'Spicy Misir Wot with Steamed Gomen & Injera': 'ምስር ወጥ እና የሀበሻ ጎመን በጤፍ እንጀራ',
+    'Kik Alicha': 'የክትክት አልጫ / ክክ አልጫ',
+    'Kik Alicha with Duba Wot & Fosolia': 'ክክ አልጫ እና ዱባ ወጥ ከፋሶሊያ ጋር',
+    'Injera': 'የጤፍ እንጀራ',
+    'Teff Injera': 'የጤፍ እንጀራ',
+    'Magna Teff Flour': 'የማኛ ጤፍ ዱቄት',
+    'Kinche': 'ቂንጬ',
+    'Kinche with Niter Kibbeh': 'ቂንጬ በቅቤ',
+    'Kinche with Olive Oil & Suff (Sunflower)': 'ቂንጬ በሱፍ ፍትፍት',
+    'Kinche with Olive Oil & Sunflower (Suff)': 'ቂንጬ በሱፍ',
+    'Gomen': 'የሀበሻ ጎመን',
+    'Steamed Gomen': 'የሀበሻ ጎመን',
+    'Gomen Besiga': 'ጎመን በስጋ',
+    'Doro Wat': 'የዶሮ ወጥ',
+    'Doro Wat with Brown Teff Injera & Boiled Egg': 'ዶሮ ወጥ በጤፍ እንጀራ እና እንቁላል',
+    'Doro Wat with Brown Teff Injera': 'ዶሮ ወጥ በጤፍ እንጀራ',
+    'Genfo': 'የገብስ ገንፎ',
+    'Barley Genfo': 'የገብስ ገንፎ',
+    'Genfo (Barley Porridge) with Niter Kibbeh & Berbere': 'የገብስ ገንፎ በቅቤ እና በርበሬ',
+    'Genfo (Barley Porridge) with Niter Kibbeh': 'የገብስ ገንፎ በቅቤ',
+    'Genfo with Spiced Olive Oil & Berbere (Tsom)': 'የገብስ ገንፎ በዘይት እና በርበሬ',
+    'Beef Tibs': 'የበሬ ጥብስ',
+    'Tibs Firfir': 'ጥብስ ፍርፍር',
+    'Azifa': 'አዚፋ',
+    'Azifa (Whole Green Lentil Salad with Mustard & Ginger)': 'አዚፋ በሰናፍጭ እና ቃሪያ',
+    'Buticha': 'ቡቲቻ',
+    'Buticha (Chickpea Flour Scramble with Lemon & Jalapeño)': 'ቡቲቻ በሎሚ እና ቃሪያ',
+    'Fosolia': 'ፋሶሊያ',
+    'Fosolia (Green Beans & Carrots)': 'ፋሶሊያ እና ካሮት',
+    'Shimbra Asa Wat': 'ሽምብራ አሳ ወጥ',
+    'Shimbra Asa Wat (Spiced Chickpea Dumplings)': 'ሽምብራ አሳ ወጥ',
+    'Telba': 'የተልባ መጠጥ',
+    'Telba (Flaxseed Porridge & Drink)': 'የተልባ ገንፎ እና መጠጥ',
+    'Chechebsa': 'ጨጨብሳ',
+    'Chechebsa (Kita Firfir)': 'ጨጨብሳ (ቂጣ ፍርፍር)',
+    'Chechebsa (Kita Firfir) with Spiced Oil & Honey': 'ጨጨብሳ በቅመም ዘይት',
+    'Beyaynetu': 'የጾም በያይነቱ',
+    'Ayib': 'አይብ',
+    'Roasted Kolo': 'የተቆላ ቆሎ',
+    'Roasted Kolo & Peanuts': 'የተቆላ ቆሎ እና ለውዝ',
+    'Timatim Salata': 'የቲማቲም ሰላጣ',
+    'Bula': 'የቡላ ገንፎ',
+    'Suff Fitfit': 'የሱፍ ፍትፍት',
+    'Kocho': 'ቆጮ'
+  };
+  return map[name] || name;
 };
