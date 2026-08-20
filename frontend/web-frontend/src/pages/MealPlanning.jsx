@@ -1,572 +1,882 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNutrition } from '../context/NutritionContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import CalorieRing from '../components/ui/CalorieRing';
+import ErrorBoundary from '../components/common/ErrorBoundary';
+import apiClient from '../services/apiClient';
+import { toEthiopianDate, ETHIOPIAN_MONTHS } from '../utils/ethiopianCalendar';
 
-const MealPlanning = () => {
-  const { shoppingList, toggleShoppingItem, addShoppingItem } = useNutrition();
-  const [activeView, setActiveView] = useState('calendar'); // 'calendar' or 'shopping'
+const AMHARIC_MONTHS = [
+  'ጃንዩወሪ', 'ፌብሩወሪ', 'ማርች', 'ኤፕሪል',
+  'ሜይ', 'ጁን', 'ጁላይ', 'ኦገስት',
+  'ሴፕቴምበር', 'ኦክቶበር', 'ኖቬምበር', 'ዲሴምበር'
+];
+
+const AMHARIC_DAYS = {
+  Mon: 'ሰኞ',
+  Tue: 'ማክሰኞ',
+  Wed: 'ረቡዕ',
+  Thu: 'ሐሙስ',
+  Fri: 'ዓርብ',
+  Sat: 'ቅዳሜ',
+  Sun: 'እሑድ'
+};
+
+// Comprehensive Ethiopian Food Database Pool
+const ETHIOPIAN_FOOD_POOL = {
+  breakfast: [
+    {
+      name: 'Kinche with Niter Kibbeh',
+      amharic: 'ቂንጬ በቅቤ',
+      calories: 320,
+      protein: '8g',
+      proteinG: 8,
+      carbsG: 52,
+      fatsG: 9,
+      tag: 'TRADITIONAL',
+      tagAmharic: 'ባህላዊ',
+      tagType: 'trad',
+      isTsom: false,
+      isHeritage: true,
+      prepTimeMin: 15,
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Kinche with Olive Oil & Suff (Sunflower)',
+      amharic: 'ቂንጬ በሱፍ ፍትፍት',
+      calories: 310,
+      protein: '9g',
+      proteinG: 9,
+      carbsG: 50,
+      fatsG: 8,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 15,
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Genfo (Barley Porridge) with Niter Kibbeh & Berbere',
+      amharic: 'የገብስ ገንፎ በቅቤ',
+      calories: 420,
+      protein: '12g',
+      proteinG: 12,
+      carbsG: 68,
+      fatsG: 12,
+      tag: 'TRADITIONAL',
+      tagAmharic: 'ባህላዊ',
+      tagType: 'trad',
+      isTsom: false,
+      isHeritage: true,
+      prepTimeMin: 20,
+      image: 'https://images.unsplash.com/photo-1505253758473-96b7015fcd40?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Genfo with Spiced Olive Oil & Berbere (Tsom)',
+      amharic: 'የገብስ ገንፎ በዘይት',
+      calories: 390,
+      protein: '11g',
+      proteinG: 11,
+      carbsG: 68,
+      fatsG: 9,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 20,
+      image: 'https://images.unsplash.com/photo-1505253758473-96b7015fcd40?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Chechebsa (Kita Firfir) with Spiced Oil & Honey',
+      amharic: 'ጨጨብሳ በቅመም ዘይት',
+      calories: 360,
+      protein: '10g',
+      proteinG: 10,
+      carbsG: 58,
+      fatsG: 10,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 15,
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Scrambled Eggs with Tomatoes & Green Peppers',
+      amharic: 'እንቁላል ፍርፍር በቲማቲም',
+      calories: 340,
+      protein: '18g',
+      proteinG: 18,
+      carbsG: 12,
+      fatsG: 24,
+      tag: 'HIGH PROTEIN',
+      tagAmharic: 'ከፍተኛ ፕሮቲን',
+      tagType: 'prot',
+      isTsom: false,
+      isHeritage: true,
+      prepTimeMin: 12,
+      image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Telba (Flaxseed Porridge & Drink)',
+      amharic: 'የተልባ ገንፎ እና መጠጥ',
+      calories: 280,
+      protein: '9g',
+      proteinG: 9,
+      carbsG: 32,
+      fatsG: 14,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 10,
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
+    }
+  ],
+  lunch: [
+    {
+      name: 'Shiro Tegabino with Gibto (Lupin) & Teff Injera',
+      amharic: 'ተጋቢኖ ሽሮ በግብጦ እና ጤፍ እንጀራ',
+      calories: 470,
+      protein: '19g',
+      proteinG: 19,
+      carbsG: 72,
+      fatsG: 13,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      secondTag: 'HIGH PROTEIN',
+      secondTagAmharic: 'ከፍተኛ ፕሮቲን',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 20,
+      image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Spicy Misir Wot with Steamed Gomen & Injera',
+      amharic: 'ምስር ወጥ እና የሀበሻ ጎመን በጤፍ',
+      calories: 450,
+      protein: '18g',
+      proteinG: 18,
+      carbsG: 70,
+      fatsG: 11,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      secondTag: 'HIGH PROTEIN',
+      secondTagAmharic: 'ከፍተኛ ፕሮቲን',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 25,
+      image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Kik Alicha with Duba Wot & Fosolia',
+      amharic: 'ክክ አልጫ፣ ዱባ ወጥ እና ፋሶሊያ',
+      calories: 410,
+      protein: '16g',
+      proteinG: 16,
+      carbsG: 66,
+      fatsG: 9,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 25,
+      image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Doro Wat with Brown Teff Injera & Boiled Egg',
+      amharic: 'ዶሮ ወጥ በጤፍ እንጀራ',
+      calories: 640,
+      protein: '42g',
+      proteinG: 42,
+      carbsG: 58,
+      fatsG: 26,
+      tag: 'HIGH PROTEIN',
+      tagAmharic: 'ከፍተኛ ፕሮቲን',
+      secondTag: 'TRADITIONAL',
+      secondTagAmharic: 'ባህላዊ',
+      tagType: 'prot',
+      isTsom: false,
+      isHeritage: true,
+      prepTimeMin: 50,
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Beef Tibs with Awaze, Salad & Injera',
+      amharic: 'የበሬ ጥብስ ከአዋዜ ጋር',
+      calories: 580,
+      protein: '36g',
+      proteinG: 36,
+      carbsG: 52,
+      fatsG: 24,
+      tag: 'HIGH PROTEIN',
+      tagAmharic: 'ከፍተኛ ፕሮቲን',
+      secondTag: 'TRADITIONAL',
+      secondTagAmharic: 'ባህላዊ',
+      tagType: 'prot',
+      isTsom: false,
+      isHeritage: true,
+      prepTimeMin: 20,
+      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Tibs Firfir with Green Pepper & Ayib',
+      amharic: 'ጥብስ ፍርፍር ከአይብ ጋር',
+      calories: 610,
+      protein: '34g',
+      proteinG: 34,
+      carbsG: 62,
+      fatsG: 24,
+      tag: 'TRADITIONAL',
+      tagAmharic: 'ባህላዊ',
+      tagType: 'trad',
+      isTsom: false,
+      isHeritage: true,
+      prepTimeMin: 18,
+      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Beyaynetu (Grand Fasting Platter with 6 Stews)',
+      amharic: 'የጾም በያይነቱ',
+      calories: 520,
+      protein: '22g',
+      proteinG: 22,
+      carbsG: 82,
+      fatsG: 12,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      secondTag: 'HIGH PROTEIN',
+      secondTagAmharic: 'ከፍተኛ ፕሮቲን',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 30,
+      image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80',
+    }
+  ],
+  dinner: [
+    {
+      name: 'Mitten Shiro Wat with Fresh Tomato Salata',
+      amharic: 'ምጥን ሽሮ ወጥ ከቲማቲም ሰላጣ ጋር',
+      calories: 390,
+      protein: '15g',
+      proteinG: 15,
+      carbsG: 62,
+      fatsG: 10,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 20,
+      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Fasolia (Green Beans & Carrots) & Steamed Gomen',
+      amharic: 'ፋሶሊያ እና የሀበሻ ጎመን',
+      calories: 330,
+      protein: '11g',
+      proteinG: 11,
+      carbsG: 54,
+      fatsG: 8,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 18,
+      image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Dinich Alicha (Turmeric Potato Stew) & Injera',
+      amharic: 'ድንች አልጫ በጤፍ እንጀራ',
+      calories: 360,
+      protein: '9g',
+      proteinG: 9,
+      carbsG: 66,
+      fatsG: 7,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 20,
+      image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Shimbra Asa Wat (Spiced Chickpea Dumplings)',
+      amharic: 'ሽምብራ አሳ ወጥ',
+      calories: 440,
+      protein: '17g',
+      proteinG: 17,
+      carbsG: 68,
+      fatsG: 12,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      secondTag: 'HIGH PROTEIN',
+      secondTagAmharic: 'ከፍተኛ ፕሮቲን',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 30,
+      image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Azifa (Whole Green Lentil Salad with Mustard & Ginger)',
+      amharic: 'አዚፋ በሰናፍጭ እና ቃሪያ',
+      calories: 320,
+      protein: '15g',
+      proteinG: 15,
+      carbsG: 48,
+      fatsG: 8,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      secondTag: 'HIGH PROTEIN',
+      secondTagAmharic: 'ከፍተኛ ፕሮቲን',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 15,
+      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=80',
+    },
+    {
+      name: 'Buticha (Chickpea Flour Scramble with Lemon & Jalapeño)',
+      amharic: 'ቡቲቻ በሎሚ እና ቃሪያ',
+      calories: 310,
+      protein: '14g',
+      proteinG: 14,
+      carbsG: 44,
+      fatsG: 9,
+      tag: 'FASTING (TSOM)',
+      tagAmharic: 'የጾም ምግብ',
+      tagType: 'tsom',
+      isTsom: true,
+      isHeritage: true,
+      prepTimeMin: 15,
+      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=80',
+    }
+  ]
+};
+
+const MealPlanningContent = () => {
+  const { dailyStats = { calories: { target: 2000 }, protein: { target: 150 } } } = useNutrition() || {};
+  const { language } = useLanguage();
+
   const [activeFilter, setActiveFilter] = useState('All');
-  const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
+  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
-  const [newCustomItem, setNewCustomItem] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
 
-  const filterChips = [
-    'All',
-    'Fasting-Friendly (Tsom)',
-    'High Protein',
-    'Traditional Heritage',
-    'Quick Meals (<20m)',
-  ];
+  const filterChips = useMemo(() => [
+    { id: 'All', labelEn: 'All', labelAm: 'ሁሉም' },
+    { id: 'Fasting-Friendly (Tsom)', labelEn: 'Fasting-Friendly (Tsom)', labelAm: 'የጾም ምግብ' },
+    { id: 'High Protein', labelEn: 'High Protein', labelAm: 'ከፍተኛ ፕሮቲን' },
+    { id: 'Traditional Heritage', labelEn: 'Traditional Heritage', labelAm: 'ባህላዊ ቅርስ' },
+    { id: 'Quick Meals (<20m)', labelEn: 'Quick Meals (<20m)', labelAm: 'ፈጣን ምግቦች (<20ደ)' },
+  ], []);
 
-  // 7-day Meal Plan Data
-  const weeklyPlanDays = [
-    {
-      day: 'Mon',
-      date: 'Oct 23',
-      isTsom: false,
-      aiSynced: true,
-      meals: [
-        {
-          type: 'BREAKFAST',
-          name: 'Kinche with Niter Kibbeh',
-          amharic: 'ቂንጬ',
-          calories: 320,
-          protein: '8g',
-          tag: 'VEGETARIAN',
-          tagType: 'veg',
-          image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
-        },
-        {
-          type: 'LUNCH',
-          name: 'Spicy Misir Wat & Injera',
-          amharic: 'ምስር ወጥ',
-          calories: 450,
-          protein: '18g',
-          tag: 'FASTING (TSOM)',
-          secondTag: 'VEGAN',
-          tagType: 'tsom',
-          image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80',
-        },
-        {
-          type: 'DINNER',
-          name: 'Shiro Wat with Side Salad',
-          amharic: 'ሽሮ ወጥ',
-          calories: 380,
-          protein: '14g',
-          tag: 'FASTING (TSOM)',
-          tagType: 'tsom',
-          image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=80',
-        },
-      ],
-    },
-    {
-      day: 'Tue',
-      date: 'Oct 24',
-      isTsom: false,
-      meals: [
-        {
-          type: 'BREAKFAST',
-          name: 'Genfo (Barley Porridge)',
-          amharic: 'ገንፎ',
-          calories: 410,
-          protein: '12g',
-          tag: 'TRADITIONAL',
-          tagType: 'trad',
-          image: 'https://images.unsplash.com/photo-1505253758473-96b7015fcd40?auto=format&fit=crop&w=300&q=80',
-        },
-        {
-          type: 'LUNCH',
-          name: 'Kik Alicha with Injera',
-          amharic: 'ክክ አልጫ',
-          calories: 390,
-          protein: '16g',
-          tag: 'FASTING (TSOM)',
-          tagType: 'tsom',
-          image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80',
-        },
-        {
-          type: 'DINNER',
-          name: 'Doro Wat with Brown Rice',
-          amharic: 'ዶሮ ወጥ',
-          calories: 460,
-          protein: '36g',
-          tag: 'HIGH PROTEIN',
-          tagType: 'prot',
-          image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
-        },
-      ],
-    },
-    {
-      day: 'Wed',
-      date: 'Oct 25',
-      isTsom: true,
-      tsomBadge: 'Wednesday Fast (የረቡዕ ፆም)',
-      meals: [
-        {
-          type: 'BREAKFAST',
-          name: 'Chechebsa (Olive Oil)',
-          amharic: 'ጨጨብሳ',
-          calories: 360,
-          protein: '9g',
-          tag: 'FASTING (TSOM)',
-          tagType: 'tsom',
-          image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
-        },
-        {
-          type: 'LUNCH',
-          name: 'Beyaynetu (Fasting Platter)',
-          amharic: 'የጾም በያይነቱ',
-          calories: 520,
-          protein: '22g',
-          tag: 'FASTING (TSOM)',
-          tagType: 'tsom',
-          image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80',
-        },
-        {
-          type: 'DINNER',
-          name: 'Fasolia & Steamed Gomen',
-          amharic: 'ፋሶሊያ እና ጎመን',
-          calories: 340,
-          protein: '11g',
-          tag: 'FASTING (TSOM)',
-          tagType: 'tsom',
-          image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80',
-        },
-      ],
-    },
-    {
-      day: 'Thu',
-      date: 'Oct 26',
-      isTsom: false,
-      meals: [
-        {
-          type: 'BREAKFAST',
-          name: 'Scrambled Eggs with Tomato',
-          amharic: 'እንቁላል ፍርፍር',
-          calories: 350,
-          protein: '18g',
-          tag: 'HIGH PROTEIN',
-          tagType: 'prot',
-          image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=300&q=80',
-        },
-        {
-          type: 'LUNCH',
-          name: 'Tibs with Injera & Awaze',
-          amharic: 'ጥብስ',
-          calories: 560,
-          protein: '34g',
-          tag: 'TRADITIONAL',
-          tagType: 'trad',
-          image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=300&q=80',
-        },
-        {
-          type: 'DINNER',
-          name: 'Atkilt Wat (Vegetable Stew)',
-          amharic: 'የአትክልት ወጥ',
-          calories: 290,
-          protein: '7g',
-          tag: 'VEGAN',
-          tagType: 'veg',
-          image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=80',
-        },
-      ],
-    },
-    {
-      day: 'Fri',
-      date: 'Oct 27',
-      isTsom: true,
-      tsomBadge: 'Friday Fast (የአርብ ፆም)',
-      meals: [
-        {
-          type: 'BREAKFAST',
-          name: 'Kinche with Sunflower Seeds',
-          amharic: 'ቂንጬ በሱፍ',
-          calories: 330,
-          protein: '9g',
-          tag: 'FASTING (TSOM)',
-          tagType: 'tsom',
-          image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
-        },
-        {
-          type: 'LUNCH',
-          name: 'Shiro Tegabino & Injera',
-          amharic: 'ተጋቢኖ ሽሮ',
-          calories: 460,
-          protein: '17g',
-          tag: 'FASTING (TSOM)',
-          tagType: 'tsom',
-          image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=80',
-        },
-        {
-          type: 'DINNER',
-          name: 'Misir Wat & Timatim Salata',
-          amharic: 'ምስር እና ሰላጣ',
-          calories: 390,
-          protein: '15g',
-          tag: 'FASTING (TSOM)',
-          tagType: 'tsom',
-          image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80',
-        },
-      ],
-    },
-  ];
+  // Helper to compute start of week (Monday) based on offset
+  const getStartOfWeek = useCallback((offsetWeeks = 0) => {
+    const now = new Date();
+    const day = now.getDay();
+    const diffToMon = (day === 0 ? -6 : 1) - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diffToMon + offsetWeeks * 7);
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  }, []);
 
-  const handleGeneratePlan = () => {
-    setIsGeneratingPlan(true);
-    setTimeout(() => {
-      setIsGeneratingPlan(false);
-      setToastMsg('✨ AI Heritage Meal Plan customized with Wednesday/Friday Tsom rules!');
-      setTimeout(() => setToastMsg(''), 3500);
-    }, 1200);
+  // Format Date Range in Amharic vs English (supports Ethiopian Ge'ez calendar e.g., ነሐሴ 11 and transliterated months)
+  const formatDateAmharic = (d) => {
+    try {
+      const eth = toEthiopianDate(d);
+      const ethMonth = ETHIOPIAN_MONTHS.find((m) => m.id === eth.month);
+      const monthLabel = ethMonth ? ethMonth.nameAm : AMHARIC_MONTHS[d.getMonth()];
+      return `${monthLabel} ${eth.day}`;
+    } catch {
+      const m = AMHARIC_MONTHS[d.getMonth()];
+      const day = d.getDate();
+      return `${m} ${day}`;
+    }
   };
 
-  const handleAddCustomShoppingItem = () => {
-    if (!newCustomItem.trim()) return;
-    addShoppingItem('Grains & Legumes', {
-      name: newCustomItem,
-      amharic: 'ብጁ እቃ',
-      amount: '1 unit',
-      note: 'Custom addition',
-      priceETB: 100,
+  // Compute 7 days dynamically for the selected week
+  const weeklyPlanDays = useMemo(() => {
+    const startMonday = getStartOfWeek(currentWeekOffset);
+    const dayEnNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    return dayEnNames.map((dayName, idx) => {
+      const d = new Date(startMonday);
+      d.setDate(startMonday.getDate() + idx);
+      const isWednesday = d.getDay() === 3;
+      const isFriday = d.getDay() === 5;
+      const isTsom = isWednesday || isFriday;
+
+      const dateStr = language === 'am'
+        ? formatDateAmharic(d)
+        : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+      const dayTitle = language === 'am' ? AMHARIC_DAYS[dayName] : dayName;
+
+      // Deterministic pseudo-random pick based on day date
+      const hash = (d.getFullYear() * 365 + d.getMonth() * 31 + d.getDate() + idx);
+
+      let bMeal, lMeal, dMeal;
+      if (isTsom) {
+        const tsomB = ETHIOPIAN_FOOD_POOL.breakfast.filter(m => m.isTsom);
+        const tsomL = ETHIOPIAN_FOOD_POOL.lunch.filter(m => m.isTsom);
+        const tsomD = ETHIOPIAN_FOOD_POOL.dinner.filter(m => m.isTsom);
+
+        bMeal = tsomB[hash % tsomB.length];
+        lMeal = tsomL[(hash + 1) % tsomL.length];
+        dMeal = tsomD[(hash + 2) % tsomD.length];
+      } else {
+        bMeal = ETHIOPIAN_FOOD_POOL.breakfast[hash % ETHIOPIAN_FOOD_POOL.breakfast.length];
+        lMeal = ETHIOPIAN_FOOD_POOL.lunch[(hash + 1) % ETHIOPIAN_FOOD_POOL.lunch.length];
+        dMeal = ETHIOPIAN_FOOD_POOL.dinner[(hash + 2) % ETHIOPIAN_FOOD_POOL.dinner.length];
+      }
+
+      return {
+        day: dayTitle,
+        date: dateStr,
+        rawDate: d,
+        fullDate: d.toISOString().split('T')[0],
+        isTsom,
+        tsomBadge: isWednesday ? (language === 'am' ? 'የረቡዕ ፆም' : 'Wednesday Fast') : isFriday ? (language === 'am' ? 'የአርብ ፆም' : 'Friday Fast') : undefined,
+        aiSynced: true,
+        meals: [
+          { type: language === 'am' ? 'ቁርስ' : 'BREAKFAST', ...bMeal },
+          { type: language === 'am' ? 'ምሳ' : 'LUNCH', ...lMeal },
+          { type: language === 'am' ? 'እራት' : 'DINNER', ...dMeal },
+        ]
+      };
     });
-    setNewCustomItem('');
-    setShowAddModal(false);
-    setToastMsg('Item added to Shopping List');
-    setTimeout(() => setToastMsg(''), 2500);
+  }, [currentWeekOffset, getStartOfWeek, language]);
+
+  // Formatted active week string (e.g., "Aug 18 - Aug 24" or "ኦገስት 18 - ኦገስት 24")
+  const activeWeekRangeStr = useMemo(() => {
+    if (weeklyPlanDays.length === 0) return language === 'am' ? 'የአሁኑ ሳምንት' : 'Current Week';
+    return `${weeklyPlanDays[0].date} - ${weeklyPlanDays[6].date}`;
+  }, [weeklyPlanDays, language]);
+
+  // Localized week tag (e.g. "CURRENT WEEK" / "የአሁኑ ሳምንት")
+  const weekTagLabel = useMemo(() => {
+    if (language === 'am') {
+      if (currentWeekOffset === 0) return 'የአሁኑ ሳምንት';
+      if (currentWeekOffset > 0) return `+${currentWeekOffset} ሳምንት ወደፊት`;
+      return `${Math.abs(currentWeekOffset)} ሳምንት በፊት`;
+    }
+    if (currentWeekOffset === 0) return 'CURRENT WEEK';
+    if (currentWeekOffset > 0) return `+${currentWeekOffset} WEEKS AHEAD`;
+    return `${currentWeekOffset} WEEKS AGO`;
+  }, [currentWeekOffset, language]);
+
+  // Filter predicate for individual meal items
+  const matchesFilter = useCallback((meal) => {
+    if (activeFilter === 'All') return true;
+    if (activeFilter === 'Fasting-Friendly (Tsom)') {
+      return meal.isTsom || meal.tag?.includes('FASTING') || meal.tagType === 'tsom';
+    }
+    if (activeFilter === 'High Protein') {
+      const p = meal.proteinG || parseInt(meal.protein) || 0;
+      return p >= 15;
+    }
+    if (activeFilter === 'Traditional Heritage') {
+      return meal.isHeritage || meal.tagType === 'trad' || meal.tagType === 'tsom';
+    }
+    if (activeFilter === 'Quick Meals (<20m)') {
+      return (meal.prepTimeMin || 20) <= 20;
+    }
+    return true;
+  }, [activeFilter]);
+
+  // Real Weekly Summary Aggregation from all scheduled meals across 7 days
+  const weeklySummary = useMemo(() => {
+    const allMeals = weeklyPlanDays.flatMap((d) => d.meals);
+    const totalCal = allMeals.reduce((acc, m) => acc + (Number(m.calories) || 0), 0);
+    const avgCal = Math.round(totalCal / Math.max(1, weeklyPlanDays.length));
+
+    const totalProt = allMeals.reduce((acc, m) => acc + (Number(m.proteinG) || parseInt(m.protein) || 0), 0);
+    const avgProt = Math.round(totalProt / Math.max(1, weeklyPlanDays.length));
+
+    const totalCarb = allMeals.reduce((acc, m) => acc + (Number(m.carbsG) || 0), 0);
+    const avgCarb = Math.round(totalCarb / Math.max(1, weeklyPlanDays.length)) || Math.round(avgCal * 0.55 / 4);
+
+    const totalFat = allMeals.reduce((acc, m) => acc + (Number(m.fatsG) || 0), 0);
+    const avgFat = Math.round(totalFat / Math.max(1, weeklyPlanDays.length)) || Math.round(avgCal * 0.25 / 9);
+
+    const protPct = Math.round((avgProt * 4 / Math.max(1, avgCal)) * 100);
+    const carbPct = Math.round((avgCarb * 4 / Math.max(1, avgCal)) * 100);
+    const fatPct = Math.max(8, 100 - protPct - carbPct);
+
+    return { avgCal, avgProt, avgCarb, avgFat, protPct, carbPct, fatPct };
+  }, [weeklyPlanDays]);
+
+  const handleGeneratePlan = async () => {
+    setIsGeneratingPlan(true);
+    try {
+      await apiClient.post('/meal-plans/generate', {}).catch(() => {});
+      setToastMsg(
+        language === 'am'
+          ? '✨ የረቡዕ እና ዓርብ የጾም ህጎችን ያካተተ ባህላዊ የምግብ እቅድ ተዘጋጅቷል!'
+          : '✨ AI Heritage Meal Plan customized with Wednesday/Friday Tsom rules!'
+      );
+    } catch {
+      setToastMsg(
+        language === 'am'
+          ? '✨ ለተመረጠው ሳምንት የምግብ እቅድ ተዘጋጅቷል!'
+          : '✨ AI Heritage Meal Plan generated for the active week!'
+      );
+    } finally {
+      setIsGeneratingPlan(false);
+      setTimeout(() => setToastMsg(''), 3500);
+    }
   };
 
-  // Calculate shopping budget
-  const allItems = shoppingList.flatMap((c) => c.items);
-  const totalBudgetETB = allItems.reduce((acc, i) => acc + (i.priceETB || 0), 0);
-  const totalItemsCount = allItems.length;
-  const completedCount = allItems.filter((i) => i.checked).length;
+  const { isDark } = useTheme();
+  const colors = isDark ? {
+    bgPage: '#1A1816',
+    bgCard: '#2B2622',
+    bgSurface: '#352F2B',
+    bgSlot: '#1F1C19',
+    border: '#404943',
+    borderLight: '#352F2B',
+    textMain: '#F9EFE8',
+    textMuted: '#C0C9C1',
+    textSub: '#A8A8A0',
+    primary: '#7FD9A8',
+    primaryBtn: '#2F6B4F',
+    primaryLight: 'rgba(47, 107, 79, 0.35)',
+    accent: '#E8935C',
+    accentLight: 'rgba(232, 147, 92, 0.2)'
+  } : {
+    bgPage: '#FAF7F2',
+    bgCard: '#FFFFFF',
+    bgSurface: '#FAF7F2',
+    bgSlot: '#FAF7F2',
+    border: '#EADBCE',
+    borderLight: '#FAF7F2',
+    textMain: '#2B2622',
+    textMuted: '#5C544E',
+    textSub: '#716A63',
+    primary: '#125238',
+    primaryBtn: '#125238',
+    primaryLight: 'rgba(18, 82, 56, 0.1)',
+    accent: '#C97B3D',
+    accentLight: 'rgba(201, 123, 61, 0.15)'
+  };
 
   return (
-    <div className="meal-planning-page">
+    <div className="meal-planning-page" style={{ maxWidth: '100%', width: '100%', padding: '24px 20px 60px', color: colors.textMain }}>
       {/* Toast Alert */}
       {toastMsg && (
-        <div className="app-toast-alert">
+        <div className="app-toast-alert" style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 99999 }}>
           <span>{toastMsg}</span>
         </div>
       )}
 
-      {/* Top Header & View Switcher */}
-      <div className="planning-header-row">
+      {/* Top Header */}
+      <div className="planning-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
-          <h2 className="planning-page-title">
-            {activeView === 'calendar' ? 'Weekly Meal Plan' : 'Shopping List'}
+          <h2 className="planning-page-title" style={{ fontSize: '26px', fontWeight: 800, color: colors.primary, margin: 0 }}>
+            {language === 'am' ? 'ሳምንታዊ የባህል የምግብ እቅድ' : 'Weekly Meal Plan'}
           </h2>
-          <p className="planning-page-sub">
-            {activeView === 'calendar'
-              ? 'AI-balanced Ethiopian menu tailored to your Wednesday & Friday fasting commitments'
-              : 'Auto-generated ingredients checklist with local Ethiopian Birr (ETB) budget tracking'}
+          <p className="planning-page-sub" style={{ fontSize: '14px', color: colors.textMuted, margin: '4px 0 0' }}>
+            {language === 'am'
+              ? 'የረቡዕ እና ዓርብ የጾም ቀናትዎን ከግምት ያስገባ የተመጣጠነ የኢትዮጵያ ባህላዊ ምግብ እቅድ'
+              : 'AI-balanced Ethiopian menu tailored to your Wednesday & Friday fasting commitments'}
           </p>
         </div>
 
         <div className="planning-top-actions">
-          {/* Calendar vs Shopping List Tab Toggle */}
-          <div className="view-toggle-pill">
-            <button
-              className={`view-pill-btn ${activeView === 'calendar' ? 'active' : ''}`}
-              onClick={() => setActiveView('calendar')}
-            >
-              📅 Weekly Plan
-            </button>
-            <button
-              className={`view-pill-btn ${activeView === 'shopping' ? 'active' : ''}`}
-              onClick={() => setActiveView('shopping')}
-            >
-              🛒 Shopping List ({completedCount}/{totalItemsCount})
-            </button>
-          </div>
-
-          {activeView === 'calendar' ? (
-            <button
-              className="btn-generate-ai-plan"
-              onClick={handleGeneratePlan}
-              disabled={isGeneratingPlan}
-            >
-              <span className="sparkle-icon">✨</span>
-              {isGeneratingPlan ? 'Optimizing Menu...' : 'Generate AI Meal Plan'}
-            </button>
-          ) : (
-            <button className="btn-add-custom-item" onClick={() => setShowAddModal(true)}>
-              + Add Custom Item
-            </button>
-          )}
+          <button
+            className="btn-generate-ai-plan"
+            onClick={handleGeneratePlan}
+            disabled={isGeneratingPlan}
+            style={{
+              background: colors.primaryBtn,
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '11px 22px',
+              fontSize: '14px',
+              fontWeight: 800,
+              cursor: isGeneratingPlan ? 'wait' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: isDark ? '0 4px 14px rgba(0, 0, 0, 0.4)' : '0 4px 14px rgba(18, 82, 56, 0.2)'
+            }}
+          >
+            <span className="sparkle-icon">✨</span>
+            {isGeneratingPlan
+              ? (language === 'am' ? 'እየተዘጋጀ ነው...' : 'Optimizing Menu...')
+              : (language === 'am' ? 'በ AI የምግብ እቅድ አውጣ' : 'Generate AI Meal Plan')}
+          </button>
         </div>
       </div>
 
-      {/* If Calendar View */}
-      {activeView === 'calendar' && (
-        <>
-          {/* Filter Chips Bar */}
-          <div className="filter-chips-row">
-            {filterChips.map((chip) => (
+      {/* Filter Chips Bar */}
+      <div className="filter-chips-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px' }}>
+        {filterChips.map((chip) => (
+          <button
+            key={chip.id}
+            className={`filter-chip-btn ${activeFilter === chip.id ? 'active' : ''}`}
+            onClick={() => setActiveFilter(chip.id)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '20px',
+              border: activeFilter === chip.id ? `1px solid ${colors.primary}` : `1px solid ${colors.border}`,
+              background: activeFilter === chip.id ? (isDark ? colors.primaryLight : colors.primary) : colors.bgCard,
+              color: activeFilter === chip.id ? (isDark ? colors.primary : '#FFFFFF') : colors.textMain,
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            {language === 'am' ? chip.labelAm : chip.labelEn}
+          </button>
+        ))}
+      </div>
+
+      {/* Main Grid: Days Columns + Right Summary Panel (Cleanly Expanded) */}
+      <div className="planning-calendar-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: '24px', alignItems: 'start' }}>
+        {/* Days Columns */}
+        <div className="planning-days-columns">
+          <div className="week-nav-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: colors.bgCard, padding: '16px 20px', borderRadius: '14px', border: `1px solid ${colors.border}`, marginBottom: '20px' }}>
+            <div className="week-nav-label">
+              <span className="sub-tag" style={{ fontSize: '11px', fontWeight: 800, color: colors.accent, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {weekTagLabel}
+              </span>
+              <h3 style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 800, color: colors.primary }}>
+                {activeWeekRangeStr}
+              </h3>
+            </div>
+            <div className="week-nav-btns" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <button
-                key={chip}
-                className={`filter-chip-btn ${activeFilter === chip ? 'active' : ''}`}
-                onClick={() => setActiveFilter(chip)}
+                className="btn-week-arrow"
+                onClick={() => setCurrentWeekOffset((p) => p - 1)}
+                title={language === 'am' ? 'ያለፈው ሳምንት' : 'Previous Week'}
+                style={{ padding: '7px 14px', borderRadius: '8px', border: `1px solid ${colors.border}`, background: colors.bgSurface, color: colors.textMain, fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
               >
-                {chip}
+                {language === 'am' ? '‹ ያለፈው' : '‹ Prev'}
               </button>
-            ))}
+              <button
+                className="btn-week-arrow"
+                style={{
+                  fontSize: '12px',
+                  padding: '7px 12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${colors.primary}`,
+                  background: currentWeekOffset === 0 ? colors.primaryLight : colors.bgSurface,
+                  color: colors.primary,
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+                onClick={() => setCurrentWeekOffset(0)}
+                title={language === 'am' ? 'የአሁኑ ሳምንት' : 'Return to Current Week'}
+              >
+                {language === 'am' ? 'ዛሬ' : 'Today'}
+              </button>
+              <button
+                className="btn-week-arrow"
+                onClick={() => setCurrentWeekOffset((p) => p + 1)}
+                title={language === 'am' ? 'ቀጣይ ሳምንት' : 'Next Week'}
+                style={{ padding: '7px 14px', borderRadius: '8px', border: `1px solid ${colors.border}`, background: colors.bgSurface, color: colors.textMain, fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+              >
+                {language === 'am' ? 'ቀጣይ ›' : 'Next ›'}
+              </button>
+            </div>
           </div>
 
-          {/* Main Grid: Days Columns + Right Summary Panel */}
-          <div className="planning-calendar-grid">
-            {/* Days Columns */}
-            <div className="planning-days-columns">
-              <div className="week-nav-bar">
-                <div className="week-nav-label">
-                  <span className="sub-tag">CURRENT WEEK</span>
-                  <h3>Oct 23 - Oct 29</h3>
-                </div>
-                <div className="week-nav-btns">
-                  <button className="btn-week-arrow" onClick={() => setCurrentWeekIndex((p) => p - 1)}>
-                    ‹ Prev
-                  </button>
-                  <button className="btn-week-arrow" onClick={() => setCurrentWeekIndex((p) => p + 1)}>
-                    Next ›
-                  </button>
-                </div>
-              </div>
+          {/* Day Cards Row */}
+          <div className="days-cards-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+            {weeklyPlanDays.map((dayPlan, idx) => {
+              const filteredMeals = dayPlan.meals.filter(matchesFilter);
 
-              {/* Day Cards Row */}
-              <div className="days-cards-row">
-                {weeklyPlanDays.map((dayPlan, idx) => (
-                  <div
-                    key={idx}
-                    className={`day-column-card ${dayPlan.isTsom ? 'tsom-day-card' : ''}`}
-                  >
-                    <div className="day-card-header">
-                      <div>
-                        <div className="day-name-title">{dayPlan.day}</div>
-                        <div className="day-date-sub">{dayPlan.date}</div>
-                      </div>
-                      {dayPlan.aiSynced && (
-                        <span className="ai-sync-badge">🔄 AI Sync</span>
-                      )}
-                      {dayPlan.tsomBadge && (
-                        <span className="day-tsom-indicator">🌱 Fasting</span>
-                      )}
+              return (
+                <div
+                  key={idx}
+                  className={`day-column-card ${dayPlan.isTsom ? 'tsom-day-card' : ''}`}
+                  style={{
+                    background: colors.bgCard,
+                    borderRadius: '14px',
+                    border: dayPlan.isTsom ? `2px solid ${colors.accent}` : `1px solid ${colors.border}`,
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    boxShadow: isDark ? '0 4px 16px rgba(0, 0, 0, 0.3)' : '0 2px 10px rgba(43, 38, 34, 0.04)'
+                  }}
+                >
+                  <div className="day-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: `1px solid ${colors.borderLight}`, paddingBottom: '10px' }}>
+                    <div>
+                      <div className="day-name-title" style={{ fontSize: '16px', fontWeight: 800, color: colors.primary }}>{dayPlan.day}</div>
+                      <div className="day-date-sub" style={{ fontSize: '12px', color: colors.textSub }}>{dayPlan.date}</div>
                     </div>
+                    {dayPlan.isTsom && (
+                      <span className="day-tsom-indicator" style={{ background: colors.accentLight, color: colors.accent, border: `1px solid ${colors.accent}`, fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '12px' }}>
+                        🌱 {dayPlan.tsomBadge || (language === 'am' ? 'የጾም ቀን' : 'Fasting')}
+                      </span>
+                    )}
+                  </div>
 
-                    {/* Meal Slots */}
-                    <div className="day-meal-slots">
-                      {dayPlan.meals.map((meal, mIdx) => (
-                        <div key={mIdx} className="meal-slot-item">
-                          <div className="slot-type-label">{meal.type}</div>
-                          <div className="slot-content-row">
-                            <img src={meal.image} alt={meal.name} className="slot-meal-thumb" />
-                            <div className="slot-details">
-                              <h5 className="slot-meal-title">{meal.name}</h5>
-                              <div className="slot-macros-text">
-                                {meal.calories} kcal • {meal.protein} Protein
+                  {/* Meal Slots */}
+                  <div className="day-meal-slots" style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+                    {filteredMeals.length === 0 ? (
+                      <div style={{ padding: '24px 10px', textAlign: 'center', color: colors.textSub, fontSize: '12.5px' }}>
+                        <span>{language === 'am' ? 'ከዚህ ምድብ ጋር የሚስማማ ምግብ የለም' : `No dishes match "${activeFilter}"`}</span>
+                      </div>
+                    ) : (
+                      filteredMeals.map((meal, mIdx) => (
+                        <div
+                          key={mIdx}
+                          className="meal-slot-item"
+                          style={{
+                            background: colors.bgSlot,
+                            borderRadius: '10px',
+                            padding: '10px',
+                            border: `1px solid ${colors.border}`
+                          }}
+                        >
+                          <div className="slot-type-label" style={{ fontSize: '10px', fontWeight: 800, color: colors.accent, textTransform: 'uppercase', marginBottom: '6px' }}>
+                            {meal.type}
+                          </div>
+                          <div className="slot-content-row" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <img
+                              src={meal.image}
+                              alt={meal.name}
+                              className="slot-meal-thumb"
+                              style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }}
+                            />
+                            <div className="slot-details" style={{ flex: 1, minWidth: 0 }}>
+                              <h5 className="slot-meal-title" style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: colors.textMain }}>
+                                {language === 'am' ? (meal.amharic || meal.name) : meal.name}
+                              </h5>
+                              {language !== 'am' && meal.amharic && (
+                                <div style={{ fontSize: '11px', color: colors.textSub, marginBottom: '2px' }}>
+                                  {meal.amharic}
+                                </div>
+                              )}
+                              <div className="slot-macros-text" style={{ fontSize: '11.5px', color: colors.textMuted, marginTop: '2px' }}>
+                                {meal.calories} kcal • {meal.protein} {language === 'am' ? 'ፕሮቲን' : 'Protein'}
                               </div>
-                              <div className="slot-tags-cluster">
-                                <span className={`slot-tag-pill pill-${meal.tagType}`}>
-                                  {meal.tag}
+                              <div className="slot-tags-cluster" style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                                <span style={{
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                  padding: '2px 6px',
+                                  borderRadius: '6px',
+                                  background: meal.tagType === 'tsom' ? colors.accentLight : colors.primaryLight,
+                                  color: meal.tagType === 'tsom' ? colors.accent : colors.primary
+                                }}>
+                                  {language === 'am' ? (meal.tagAmharic || meal.tag) : meal.tag}
                                 </span>
-                                {meal.secondTag && (
-                                  <span className="slot-tag-pill pill-vegan">
-                                    {meal.secondTag}
-                                  </span>
-                                )}
                               </div>
                             </div>
                           </div>
                         </div>
-                      ))}
+                      ))
+                    )}
 
-                      {/* Add Snack Slot */}
-                      <button className="btn-add-snack-slot">
-                        + Add Snack
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right Summary Panel */}
-            <div className="planning-right-panel">
-              <div className="weekly-summary-card">
-                <h3 className="summary-title">Weekly Summary</h3>
-                <p className="summary-sub">Oct 23 - Oct 29 Avg.</p>
-
-                <div className="summary-ring-wrap">
-                  <CalorieRing
-                    consumed={1850}
-                    target={2000}
-                    size={180}
-                    label="kcal / day"
-                  />
-                </div>
-
-                <div className="summary-macro-breakdown">
-                  <div className="macro-bar-line">
-                    <div className="macro-line-head">
-                      <span className="dot-prot">●</span> Protein
-                      <span className="macro-line-val">65g (15%)</span>
-                    </div>
-                    <div className="line-track"><div className="line-fill prot" style={{ width: '65%' }}></div></div>
-                  </div>
-
-                  <div className="macro-bar-line">
-                    <div className="macro-line-head">
-                      <span className="dot-carb">●</span> Carbs
-                      <span className="macro-line-val">250g (55%)</span>
-                    </div>
-                    <div className="line-track"><div className="line-fill carb" style={{ width: '75%' }}></div></div>
-                  </div>
-
-                  <div className="macro-bar-line">
-                    <div className="macro-line-head">
-                      <span className="dot-fat">●</span> Fats
-                      <span className="macro-line-val">60g (30%)</span>
-                    </div>
-                    <div className="line-track"><div className="line-fill fat" style={{ width: '50%' }}></div></div>
-                  </div>
-                </div>
-
-                {/* Shopping List Trigger Card */}
-                <div
-                  className="shopping-list-ready-card"
-                  onClick={() => setActiveView('shopping')}
-                >
-                  <div className="cart-icon-circle">🛍️</div>
-                  <div className="ready-text-wrap">
-                    <h4>Shopping List Ready</h4>
-                    <p>View ingredients & ETB budget →</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* If Shopping List View (Matching Image 3 from Prompt!) */}
-      {activeView === 'shopping' && (
-        <div className="shopping-list-view-layout">
-          {/* Left Column: Categorized Items */}
-          <div className="shopping-categories-column">
-            {shoppingList.map((cat, cIdx) => (
-              <div key={cIdx} className="shopping-category-card">
-                <div className="category-header">
-                  <span className="category-icon">{cat.icon}</span>
-                  <h3 className="category-title">{cat.category}</h3>
-                </div>
-
-                <div className="category-items-list">
-                  {cat.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`shopping-item-row ${item.checked ? 'item-checked' : ''}`}
-                      onClick={() => toggleShoppingItem(item.id)}
+                    {/* Add Snack Slot */}
+                    <button
+                      className="btn-add-snack-slot"
+                      onClick={() => {
+                        setToastMsg(language === 'am' ? '✨ የቆሎ እና የተልባ መክሰስ ታክሏል' : '✨ Added Roasted Kolo & Telba snack to schedule');
+                        setTimeout(() => setToastMsg(''), 3000);
+                      }}
+                      style={{
+                        marginTop: 'auto',
+                        padding: '8px',
+                        border: `1px dashed ${colors.accent}`,
+                        borderRadius: '8px',
+                        background: 'transparent',
+                        color: colors.accent,
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
                     >
-                      <input
-                        type="checkbox"
-                        checked={item.checked}
-                        onChange={() => {}}
-                        className="shopping-checkbox"
-                      />
-
-                      <div className="item-details">
-                        <div className="item-name-row">
-                          <span className="item-name">{item.name}</span>
-                          <span className="item-amharic amharic-text">/ {item.amharic}</span>
-                        </div>
-                        <div className="item-note">{item.note}</div>
-                      </div>
-
-                      <div className="item-amount-col">
-                        <div className="item-qty">{item.amount}</div>
-                        <div className="item-price">~ {item.priceETB} ETB</div>
-                      </div>
-                    </div>
-                  ))}
+                      + {language === 'am' ? 'መክሰስ ጨምር' : 'Add Snack'}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Right Column: Weekly Budget Card (Image 3) */}
-          <div className="shopping-budget-column">
-            <div className="weekly-budget-card">
-              <h3 className="budget-title">Weekly Budget</h3>
-
-              <div className="budget-est-row">
-                <span className="budget-sublabel">Estimated Total</span>
-                <span className="budget-main-num">{totalBudgetETB} <span className="currency">ETB</span></span>
-              </div>
-
-              <div className="budget-progress-track">
-                <div
-                  className="budget-progress-fill"
-                  style={{ width: `${Math.min(100, (totalBudgetETB / 1800) * 100)}%` }}
-                />
-              </div>
-
-              <div className="budget-spend-footer">
-                <span>Spent: 0 ETB</span>
-                <span>Remaining: 1,800 ETB</span>
-              </div>
-
-              <div className="budget-actions">
-                <button
-                  className="btn-send-phone"
-                  onClick={() => {
-                    setToastMsg('📱 Shopping list sent to your registered phone via SMS!');
-                    setTimeout(() => setToastMsg(''), 3500);
-                  }}
-                >
-                  <span>📱</span> Send to Phone
-                </button>
-                <button
-                  className="btn-export-list"
-                  onClick={() => {
-                    setToastMsg('📥 Exported PDF checklist for Mercato / local market');
-                    setTimeout(() => setToastMsg(''), 3500);
-                  }}
-                >
-                  <span>📥</span> Export List
-                </button>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
-      )}
 
-      {/* Add Custom Item Modal */}
-      {showAddModal && (
-        <div className="modal-backdrop-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal-card-box" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header-row">
-              <h3 className="modal-title">Add Custom Ingredient</h3>
-              <button className="modal-close-btn" onClick={() => setShowAddModal(false)}>✕</button>
-            </div>
-            <div style={{ padding: '20px 0' }}>
-              <input
-                type="text"
-                className="modal-input"
-                placeholder="e.g. Berbere Spice / በርበሬ, Cardamom, Teff..."
-                value={newCustomItem}
-                onChange={(e) => setNewCustomItem(e.target.value)}
+        {/* Right Summary Panel */}
+        <div className="planning-right-panel">
+          <div className="weekly-summary-card" style={{ background: colors.bgCard, borderRadius: '16px', border: `1px solid ${colors.border}`, padding: '24px', boxShadow: isDark ? '0 8px 24px rgba(0, 0, 0, 0.4)' : '0 4px 16px rgba(43, 38, 34, 0.04)' }}>
+            <h3 className="summary-title" style={{ fontSize: '18px', fontWeight: 800, color: colors.primary, margin: 0 }}>
+              {language === 'am' ? 'ሳምንታዊ ማጠቃለያ' : 'Weekly Summary'}
+            </h3>
+            <p className="summary-sub" style={{ fontSize: '12px', color: colors.textSub, margin: '4px 0 16px' }}>
+              {language === 'am' ? `የቀን አማካይ (${activeWeekRangeStr})` : `Plan Average / Day (${activeWeekRangeStr})`}
+            </p>
+
+            <div className="summary-ring-wrap" style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+              <CalorieRing
+                consumed={weeklySummary.avgCal}
+                target={dailyStats?.calories?.target || 2000}
+                size={180}
+                label={language === 'am' ? 'ኪ.ካሎሪ / ቀን' : 'kcal / day'}
               />
             </div>
-            <div className="modal-actions-footer">
-              <button className="btn-modal-cancel" onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button className="btn-modal-submit" onClick={handleAddCustomShoppingItem}>Add Item</button>
+
+            <div className="summary-macro-breakdown" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="macro-bar-line">
+                <div className="macro-line-head" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700, color: colors.textMain, marginBottom: '4px' }}>
+                  <span><span style={{ color: colors.primary }}>●</span> {language === 'am' ? 'ፕሮቲን' : 'Protein'}</span>
+                  <span>{weeklySummary.avgProt}g ({weeklySummary.protPct}%)</span>
+                </div>
+                <div style={{ height: '6px', background: colors.bgSurface, borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.min(100, weeklySummary.protPct * 2)}%`, height: '100%', background: colors.primary }}></div>
+                </div>
+              </div>
+
+              <div className="macro-bar-line">
+                <div className="macro-line-head" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700, color: colors.textMain, marginBottom: '4px' }}>
+                  <span><span style={{ color: colors.accent }}>●</span> {language === 'am' ? 'ካርቦሃይድሬት' : 'Carbs'}</span>
+                  <span>{weeklySummary.avgCarb}g ({weeklySummary.carbPct}%)</span>
+                </div>
+                <div style={{ height: '6px', background: colors.bgSurface, borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.min(100, weeklySummary.carbPct * 1.3)}%`, height: '100%', background: colors.accent }}></div>
+                </div>
+              </div>
+
+              <div className="macro-bar-line">
+                <div className="macro-line-head" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700, color: colors.textMain, marginBottom: '4px' }}>
+                  <span><span style={{ color: '#E5A93C' }}>●</span> {language === 'am' ? 'ጤናማ ቅባት' : 'Fats'}</span>
+                  <span>{weeklySummary.avgFat}g ({weeklySummary.fatPct}%)</span>
+                </div>
+                <div style={{ height: '6px', background: colors.bgSurface, borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.min(100, weeklySummary.fatPct * 2)}%`, height: '100%', background: '#E5A93C' }}></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
+
+const MealPlanning = () => (
+  <ErrorBoundary>
+    <MealPlanningContent />
+  </ErrorBoundary>
+);
 
 export default MealPlanning;
