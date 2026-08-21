@@ -6,17 +6,54 @@ import ActionRow from '../components/ui/ActionRow';
 import LogMealModal from '../components/ui/LogMealModal';
 
 const FoodLogging = () => {
-  const { foodLogs, dailyStats, removeFoodLog } = useNutrition();
+  const { foodLogs, dailyStats, removeFoodLog, saveDraftLogs, resetTodayLogs } = useNutrition();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('manual');
   const [targetCategory, setTargetCategory] = useState('lunch');
   const [searchFilter, setSearchFilter] = useState('');
   const [activeDateTab, setActiveDateTab] = useState('today');
+  const [toastMsg, setToastMsg] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const hasUnsavedDrafts = foodLogs.some((l) => l.isDraft || String(l.id).startsWith('local-'));
 
   const handleOpenModal = (mode, category = 'lunch') => {
     setModalMode(mode);
     setTargetCategory(category);
     setModalOpen(true);
+  };
+
+  const handleSingleDelete = async (item) => {
+    if (window.confirm(`Delete "${item.name}" from your log?`)) {
+      await removeFoodLog(item.id);
+      setToastMsg(`✨ Removed ${item.name}`);
+      setTimeout(() => setToastMsg(''), 3000);
+    }
+  };
+
+  const handleSaveAll = async () => {
+    setIsSaving(true);
+    try {
+      if (saveDraftLogs) {
+        await saveDraftLogs();
+      }
+      setToastMsg('✨ Food log saved successfully!');
+    } catch (err) {
+      setToastMsg('⚠️ Failed to save food log.');
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setToastMsg(''), 3500);
+    }
+  };
+
+  const handleResetLogs = async () => {
+    if (window.confirm('Reset all logged foods for today? This cannot be undone.')) {
+      if (resetTodayLogs) {
+        await resetTodayLogs();
+      }
+      setToastMsg('✨ Today\'s food log has been reset.');
+      setTimeout(() => setToastMsg(''), 3500);
+    }
   };
 
   const mealCategories = [
@@ -27,13 +64,7 @@ const FoodLogging = () => {
   ];
 
   const getLogsForCategory = (catKey) => {
-    return foodLogs.filter((item) => {
-      const matchCat = (item.category || '').toLowerCase() === catKey;
-      const matchSearch =
-        item.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-        (item.amharicName && item.amharicName.includes(searchFilter));
-      return matchCat && matchSearch;
-    });
+    return foodLogs.filter((item) => (item.category || '').toLowerCase() === catKey);
   };
 
   const calculateCategoryTotals = (catKey) => {
@@ -45,8 +76,15 @@ const FoodLogging = () => {
 
   return (
     <div className="food-logging-page">
-      {/* Header Bar with Date Switcher and Search */}
-      <div className="logging-top-controls">
+      {/* Toast Alert */}
+      {toastMsg && (
+        <div className="app-toast-alert" style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 99999 }}>
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* Header Bar with Date Switcher, Save & Reset Actions, and Search */}
+      <div className="logging-top-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div className="date-tabs-pill">
           <button
             className={`date-tab-btn ${activeDateTab === 'yesterday' ? 'active' : ''}`}
@@ -58,7 +96,7 @@ const FoodLogging = () => {
             className={`date-tab-btn ${activeDateTab === 'today' ? 'active' : ''}`}
             onClick={() => setActiveDateTab('today')}
           >
-            Today (Wed Fast)
+            Today
           </button>
           <button
             className={`date-tab-btn ${activeDateTab === 'tomorrow' ? 'active' : ''}`}
@@ -68,14 +106,53 @@ const FoodLogging = () => {
           </button>
         </div>
 
-        <div className="logging-search-bar">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Search logged foods, Injera, Misir, Shiro..."
-            value={searchFilter}
-            onChange={(e) => setSearchFilter(e.target.value)}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {hasUnsavedDrafts && (
+            <span style={{ fontSize: '11px', fontWeight: 800, padding: '4px 10px', borderRadius: '12px', background: 'rgba(232, 147, 92, 0.2)', color: '#C97B3D', border: '1px solid rgba(201, 123, 61, 0.4)' }}>
+              ● Unsaved Changes
+            </span>
+          )}
+          <button
+            type="button"
+            className="btn-save-logs"
+            onClick={handleSaveAll}
+            disabled={isSaving}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              background: 'var(--forest-green)',
+              color: '#FFFFFF',
+              fontWeight: 800,
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            💾 {isSaving ? 'Saving...' : 'Save'}
+          </button>
+          <button
+            type="button"
+            className="btn-reset-logs"
+            onClick={handleResetLogs}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '8px',
+              border: '1px solid var(--terracotta)',
+              background: 'transparent',
+              color: 'var(--terracotta)',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            ↺ Reset
+          </button>
         </div>
       </div>
 
@@ -161,9 +238,10 @@ const FoodLogging = () => {
                         {/* Actions */}
                         <div className="meal-entry-actions">
                           <button
+                            type="button"
                             className="btn-delete-entry"
-                            onClick={() => removeFoodLog(item.id)}
-                            title="Delete log"
+                            onClick={() => handleSingleDelete(item)}
+                            title="Delete food entry"
                           >
                             🗑️
                           </button>
