@@ -100,12 +100,39 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async (idToken) => {
+    try {
+      const response = await apiAuth.googleLogin(idToken);
+      const { user: userData, accessToken, refreshToken, isNewUser } = response.data;
+
+      setToken(accessToken);
+      setUser(userData);
+      setIsAuthenticated(true);
+
+      localStorage.setItem('auth_token', accessToken);
+      localStorage.setItem('refresh_token', refreshToken);
+      localStorage.setItem('auth_user', JSON.stringify(userData));
+
+      return { success: true, isNewUser: isNewUser || response.status === 201 };
+    } catch (error) {
+      const errCode = error.response?.data?.error?.code || error.response?.data?.code;
+      let errMsg = error.response?.data?.error?.message || error.message || 'Google Authentication failed';
+      if (errCode === 'EMAIL_EXISTS_DIFFERENT_PROVIDER') {
+        errMsg = 'An account with this email already exists. Please sign in with your email and password instead.';
+      } else if (error.code === 'ERR_NETWORK' || !error.response) {
+        errMsg = 'Unable to connect to EthioNutri server. Please ensure the backend is running at ' + (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1');
+      }
+      return { success: false, error: errMsg, code: errCode };
+    }
+  };
+
   const value = {
     user,
     token,
     isAuthenticated,
     login,
     register,
+    googleLogin,
     updateUserProfile,
     logout
   };
