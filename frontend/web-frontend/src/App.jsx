@@ -20,6 +20,7 @@ import ContactUs from './pages/ContactUs';
 // Auth Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // App / In-App Core Screens
 import AppLayout from './components/layout/AppLayout';
@@ -62,6 +63,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Register />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
 
                   {/* 3. In-App Authenticated Screens */}
                   <Route
