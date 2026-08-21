@@ -3,6 +3,8 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import EthioNutriLogo from '../components/common/EthioNutriLogo';
+import { apiAuth } from '../services/apiAuth';
 
 const GoogleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24">
@@ -28,9 +30,11 @@ const GoogleIcon = () => (
 const AuthPage = ({ initialMode = 'signup' }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login, register, googleLogin } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
+
+  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '145549897064-e6cjgi80ncp477283e12dapv13i5h7mj.apps.googleusercontent.com';
 
   const [isActive, setIsActive] = useState(() => {
     if (location.pathname === '/login') return false;
@@ -47,6 +51,58 @@ const AuthPage = ({ initialMode = 'signup' }) => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
 
+  const handleGoogleCredentialResponse = async (response) => {
+    if (!response || !response.credential) return;
+    setIsLoading(true);
+    setErrorMsg('');
+
+    const result = await googleLogin(response.credential);
+    setIsLoading(false);
+
+    if (result.success) {
+      if (result.isNewUser) {
+        navigate('/onboarding', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    } else {
+      if (result.code === 'EMAIL_EXISTS_DIFFERENT_PROVIDER') {
+        setIsActive(false);
+        setSignInData((prev) => ({ ...prev, email: prev.email || signUpData.email }));
+        showMessage('An account already exists with this email. Please sign in with your email and password.');
+      } else {
+        showMessage(result.error || (language === 'am' ? 'በGoogle መግባት አልተሳካም' : 'Google Authentication failed'));
+      }
+    }
+  };
+
+  useEffect(() => {
+    const loadGis = () => {
+      if (window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCredentialResponse,
+          });
+        } catch (err) {
+          console.warn('GIS init warning:', err);
+        }
+      }
+    };
+
+    if (!document.getElementById('google-client-script')) {
+      const script = document.createElement('script');
+      script.id = 'google-client-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = loadGis;
+      document.head.appendChild(script);
+    } else {
+      loadGis();
+    }
+  }, []);
+
   useEffect(() => {
     if (location.pathname === '/login') {
       setIsActive(false);
@@ -61,25 +117,25 @@ const AuthPage = ({ initialMode = 'signup' }) => {
 
   // Google Single Sign-On
   const handleGoogleAuth = async () => {
-    setIsLoading(true);
     setErrorMsg('');
-
-    const result = await register({
-      fullName: 'Selamawit Kebede (Google User)',
-      email: 'selamawit@ethionutri.ai',
-      password: 'google_oauth_verified'
-    });
-
-    setIsLoading(false);
-
-    if (result.success) {
-      if (isActive) {
-        navigate('/onboarding', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
+    if (window.google?.accounts?.id) {
+      try {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCredentialResponse,
+        });
+        window.google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // Prompt fallback or standard notification warning
+            console.warn('Google Identity One-Tap notification:', notification.getNotDisplayedReason?.());
+          }
+        });
+      } catch (err) {
+        console.warn('Google prompt initiation error:', err);
+        showMessage(language === 'am' ? 'በGoogle መግባት አልተሳካም' : 'Google Authentication failed');
       }
     } else {
-      showMessage(language === 'am' ? 'በGoogle መግባት አልተሳካም' : 'Google Authentication failed');
+      showMessage(language === 'am' ? 'የGoogle አገልግሎት በመጫን ላይ ነው። እባክዎ እንደገና ይሞክሩ።' : 'Google Authentication service loading. Please try again.');
     }
   };
 
@@ -149,33 +205,33 @@ const AuthPage = ({ initialMode = 'signup' }) => {
   };
 
   // Forgot Password Form Submission
-  const handleForgotSubmit = (e) => {
+  const handleForgotSubmit = async (e) => {
     e.preventDefault();
     if (!forgotEmail || !forgotEmail.includes('@')) {
       showMessage(language === 'am' ? 'እባክዎ ትክክለኛ ኢሜይል ያስገቡ' : 'Please enter a valid email address');
       return;
     }
-    setForgotSent(true);
-    setTimeout(() => {
-      setShowForgotModal(false);
-      setForgotSent(false);
-      setForgotEmail('');
-    }, 2500);
+    setIsLoading(true);
+    try {
+      await apiAuth.forgotPassword(forgotEmail.trim());
+    } catch (err) {
+      console.error('Forgot password submission error:', err);
+    } finally {
+      setIsLoading(false);
+      setForgotSent(true);
+      setTimeout(() => {
+        setShowForgotModal(false);
+        setForgotSent(false);
+        setForgotEmail('');
+      }, 4000);
+    }
   };
 
   return (
     <div className="auth-sliding-wrapper">
       {/* Top Header Navbar */}
       <header className="auth-sliding-topbar">
-        <Link to="/" className="marketing-brand-logo" style={{ textDecoration: 'none' }}>
-          <div className="marketing-brand-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-            </svg>
-          </div>
-          <span className="marketing-brand-text">EthioNutri AI</span>
-        </Link>
+        <EthioNutriLogo />
 
         <div className="auth-minimal-actions">
           {/* Language Selector Dropdown */}
