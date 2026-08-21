@@ -167,8 +167,9 @@ export const NutritionProvider = ({ children }) => {
         ['breakfast', 'lunch', 'dinner', 'snack', 'snacks'].forEach((meal) => {
           if (Array.isArray(groupedLogs[meal])) {
             groupedLogs[meal].forEach((l) => {
+              const entryId = String(l._id || l.id || `log-${Date.now()}-${Math.random()}`);
               flatLogs.push({
-                id: l._id || l.id,
+                id: entryId,
                 category: (l.mealType || meal).toLowerCase(),
                 name: l.customName || 'Logged Food',
                 amharicName: l.amharicName || '',
@@ -237,7 +238,8 @@ export const NutritionProvider = ({ children }) => {
       console.error('Failed to add food log', err);
       // Fallback local update
       const localEntry = {
-        id: `local-${Date.now()}`,
+        id: `local-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        isDraft: true,
         category: (newMeal.category || 'lunch').toLowerCase(),
         name: newMeal.name || 'Food Item',
         amharicName: newMeal.amharicName || '',
@@ -259,16 +261,86 @@ export const NutritionProvider = ({ children }) => {
     }
   };
 
-  const removeFoodLog = async (id) => {
+  const addDraftFoodLog = (newMeal) => {
+    const localEntry = {
+      id: `local-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      isDraft: true,
+      category: (newMeal.category || 'lunch').toLowerCase(),
+      name: newMeal.name || 'Food Item',
+      amharicName: newMeal.amharicName || '',
+      portion: newMeal.portion || '1 serving',
+      calories: Number(newMeal.calories) || 0,
+      protein: Number(newMeal.protein) || 0,
+      carbs: Number(newMeal.carbs) || 0,
+      fats: Number(newMeal.fats) || 0,
+      iron: Number(newMeal.iron) || 0,
+      isTsom: newMeal.isTsom !== undefined ? newMeal.isTsom : true,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      image: newMeal.image || 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80'
+    };
+
+    setFoodLogs((prev) => {
+      const updated = [...prev, localEntry];
+      setDailyStats(computeStatsFromLogs(updated));
+      return updated;
+    });
+  };
+
+  const saveDraftLogs = async () => {
+    const drafts = foodLogs.filter((l) => l.isDraft || String(l.id).startsWith('local-'));
+    if (drafts.length === 0) return { success: true, count: 0 };
+
     try {
-      if (!String(id).startsWith('local-')) {
-        await apiClient.delete(`/food-logs/${id}`);
-      }
+      const items = drafts.map((d) => ({
+        category: d.category,
+        custom_name: d.name,
+        calories: d.calories,
+        protein_g: d.protein,
+        carbs_g: d.carbs,
+        fats_g: d.fats,
+        iron_mg: d.iron,
+        quantity_g: 150
+      }));
+
+      await apiClient.post('/food-logs/batch', { items });
       await fetchData();
+      return { success: true, count: drafts.length };
+    } catch (err) {
+      console.error('Failed to save draft food logs batch:', err);
+      throw err;
+    }
+  };
+
+  const resetTodayLogs = async () => {
+    try {
+      await apiClient.delete('/food-logs/today/reset').catch(() => {});
+      setFoodLogs([]);
+      setDailyStats(computeStatsFromLogs([]));
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to reset today logs:', err);
+      setFoodLogs([]);
+      setDailyStats(computeStatsFromLogs([]));
+      return { success: true };
+    }
+  };
+
+  const removeFoodLog = async (id) => {
+    if (!id) return;
+    const targetStr = String(id);
+    try {
+      if (!targetStr.startsWith('local-')) {
+        await apiClient.delete(`/food-logs/${targetStr}`);
+      }
+      setFoodLogs((prev) => {
+        const updated = prev.filter((item) => String(item.id) !== targetStr);
+        setDailyStats(computeStatsFromLogs(updated));
+        return updated;
+      });
     } catch (err) {
       console.error('Failed to delete log', err);
       setFoodLogs((prev) => {
-        const updated = prev.filter((item) => item.id !== id);
+        const updated = prev.filter((item) => String(item.id) !== targetStr);
         setDailyStats(computeStatsFromLogs(updated));
         return updated;
       });
@@ -374,6 +446,9 @@ export const NutritionProvider = ({ children }) => {
         setDailyStats,
         foodLogs,
         addFoodLog,
+        addDraftFoodLog,
+        saveDraftLogs,
+        resetTodayLogs,
         removeFoodLog,
         recommendedMeal,
         setRecommendedMeal,
