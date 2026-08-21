@@ -9,14 +9,16 @@ const HowItWorks = () => {
   const steps = [
     {
       number: '1',
-      title: language === 'am' ? 'ባህላዊ ምግቦችን በቀላሉ ይመዝግቡ' : 'Log Your Traditional Meals',
+      title: language === 'am' ? 'በድምጽ ወይም በጽሑፍ በቀላሉ መዝግብ' : 'Log by Voice or Manual Entry',
       desc: language === 'am'
-        ? 'በስልክዎ የምግብ ፎቶ በማንሳት፣ በአማርኛ ወይም በእንግሊዝኛ ድምጽዎን በመጠቀም፣ ወይም ከ300+ በላይ ባህላዊ ምግቦች ዝርዝር ውስጥ በመምረጥ የቁርስ፣ ምሳ እና እራትዎን ይመዝግቡ።'
-        : 'Snap a photo of your plate, use voice logging in Amharic or English, or select from our database of over 300 verified Ethiopian dishes including injera sizes and specific wot portions.',
+        ? 'በአማርኛ ወይም በእንግሊዝኛ ድምጽዎን በመጠቀም፣ ወይም ከ300+ በላይ ባህላዊ ምግቦች ዝርዝር ውስጥ በጽሑፍ በመምረጥ የቁርስ፣ ምሳ እና እራትዎን በቀላሉ ይመዝግቡ።'
+        : 'Log your meals effortlessly using Amharic or English voice commands or quick manual selection from our verified database of over 300 Ethiopian dishes.',
       icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-          <circle cx="12" cy="13" r="4" />
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+          <line x1="12" y1="19" x2="12" y2="23" />
+          <line x1="8" y1="23" x2="16" y2="23" />
         </svg>
       ),
       badgeColor: 'orange-badge',
@@ -89,8 +91,8 @@ const HowItWorks = () => {
     {
       q: language === 'am' ? 'የአገልግሎቱ ክፍያ እንዴት ነው?' : 'What is the pricing model?',
       a: language === 'am'
-        ? 'መሰረታዊ የምግብ መመዝገቢያ እና የጾም ቀን መቁጠሪያ በነፃ ይቀርባሉ። የላቀ የAI ምስል መለያ፣ የግል የአመጋገብ እቅድ እና የክሊኒካል ምክር በPremium አባልነት ይገኛሉ።'
-        : 'EthioNutri AI offers a generous free tier with core meal logging and the Orthodox fasting calendar. Advanced features like photo-AI meal recognition, custom meal prep blueprints, and micronutrient alerts are available in our Premium plan.',
+        ? 'መሰረታዊ የምግብ መመዝገቢያ እና የጾም ቀን መቁጠሪያ በነፃ ይቀርባሉ። የላቀ የAI ድምጽ መለያ፣ የግል የአመጋገብ እቅድ እና የክሊኒካል ምክር በPremium አባልነት ይገኛሉ።'
+        : 'EthioNutri AI offers a generous free tier with core meal logging and the Orthodox fasting calendar. Advanced features like AI voice recognition, custom meal prep blueprints, and micronutrient alerts are available in our Premium plan.',
     },
   ];
 
