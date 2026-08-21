@@ -47,42 +47,36 @@ const AboutUs = () => {
     },
   ];
 
+  const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80';
+
   const team = [
     {
-      name: 'Dr. Selamawit Tadesse, PhD',
-      nameAm: 'ዶ/ር ሰላማዊት ታደሰ',
-      roleEn: 'Chief Nutrition Scientist',
-      roleAm: 'ዋና የአመጋገብ ሳይንቲስት',
-      bioEn: 'Former clinical researcher specializing in African indigenous grains, micronutrient bioavailability, and plant-based fasting metabolism.',
-      bioAm: 'በአፍሪካ ጥንታዊ እህሎች፣ የብረትና ፕሮቲን ይዘት እና በጾም የአመጋገብ ስርዓት ላይ ሰፊ ምርምር ያደረጉ ባለሙያ።',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
+      name: 'Bereket Muluken',
+      nameAm: 'በረከት ሙሉከን',
+      roleEn: 'Backend',
+      roleAm: 'ባክኤንድ',
+      avatar: DEFAULT_AVATAR,
     },
     {
-      name: 'Bereket Alemu',
-      nameAm: 'በረከት አለሙ',
-      roleEn: 'Founder & AI Architect',
-      roleAm: 'መስራች እና የAI መሐንዲስ',
-      bioEn: 'Full-stack AI systems engineer passionate about bridging computer vision with Ethiopian cultural culinary databases.',
-      bioAm: 'የኮምፒውተር እይታ እና የሰው ሰራሽ አስተውሎትን ከኢትዮጵያ ባህላዊ ማዕድ ጋር የሚያስተሳስሩ መሐንዲስ።',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+      name: 'Bereket Teshome',
+      nameAm: 'በረከት ተሾመ',
+      roleEn: 'Full-Stack',
+      roleAm: 'ፉል-ስታክ',
+      avatar: DEFAULT_AVATAR,
     },
     {
-      name: 'Chef Meron Haile',
-      nameAm: 'ሼፍ ሜሮን ኃይሌ',
-      roleEn: 'Heritage Culinary Director',
-      roleAm: 'የባህላዊ የምግብ ጥበብ ዳይሬክተር',
-      bioEn: 'Renowned chef and author preserving ancient Ethiopian recipes, regional spice blends, and authentic fermentation techniques.',
-      bioAm: 'ጥንታዊ የኢትዮጵያ የምግብ አዘገጃጀትና የቅመማ ቅመም ውህደቶችን ጠብቀው የሚያቆዩ ታዋቂ ሼፍ።',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      name: 'Degefa Lemma',
+      nameAm: 'ደገፋ ለማ',
+      roleEn: 'Frontend',
+      roleAm: 'ፍሮንትኤንድ',
+      avatar: DEFAULT_AVATAR,
     },
     {
-      name: 'Deacon Yohannes Gebre',
-      nameAm: 'ዲያቆን ዮሐንስ ገብሬ',
-      roleEn: 'Orthodox Traditions Advisor',
-      roleAm: 'የኦርቶዶክስ ተዋሕዶ ስርዓት አማካሪ',
-      bioEn: 'Liaison ensuring strict adherence to canonical fasting dates, liturgical observance periods, and traditional fasting dietary ethics.',
-      bioAm: 'የጾም ቀናት እና የቤተክርስቲያኗ የቀን መቁጠሪያ በትክክል እንዲከበር ክትትል የሚያደርጉ አማካሪ።',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+      name: 'Dagmawi Yonas Lakew',
+      nameAm: 'ዳግማዊ ዮናስ ላቀው',
+      roleEn: 'App',
+      roleAm: 'አፕሊኬሽን',
+      avatar: DEFAULT_AVATAR,
     },
   ];
 
@@ -191,9 +185,11 @@ const AboutUs = () => {
                   <span className="team-role">
                     {language === 'am' ? member.roleAm : member.roleEn}
                   </span>
-                  <p className="team-bio">
-                    {language === 'am' ? member.bioAm : member.bioEn}
-                  </p>
+                  {(member.bioEn || member.bioAm) && (
+                    <p className="team-bio">
+                      {language === 'am' ? member.bioAm : member.bioEn}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
