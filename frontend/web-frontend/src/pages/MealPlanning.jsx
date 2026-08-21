@@ -369,7 +369,7 @@ const ETHIOPIAN_FOOD_POOL = {
 };
 
 const MealPlanningContent = () => {
-  const { dailyStats, user } = useNutrition() || {};
+  const { dailyStats, user, addFoodLog } = useNutrition() || {};
   const [dayOverrides, setDayOverrides] = useState({});
   const [shufflingDays, setShufflingDays] = useState({});
   const { language } = useLanguage();
@@ -378,6 +378,53 @@ const MealPlanningContent = () => {
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
+
+  /**
+   * Note on Double Duty for "Add to Log":
+   * "Add to Log" serves double duty across the Meal Planning workspace:
+   * 1. Logging a planned meal card (Breakfast/Lunch/Dinner/Snack) as-is directly into the real Food Log backend table.
+   * 2. Logging a suggested snack entry when triggered from the snack suggestion slot below.
+   */
+  const handleAddMealToLog = async (meal, dayPlan) => {
+    try {
+      let category = 'lunch';
+      const typeUpper = (meal.type || '').toUpperCase();
+      if (typeUpper.includes('BREAKFAST') || typeUpper.includes('ቁርስ')) category = 'breakfast';
+      else if (typeUpper.includes('LUNCH') || typeUpper.includes('ምሳ')) category = 'lunch';
+      else if (typeUpper.includes('DINNER') || typeUpper.includes('እራት')) category = 'dinner';
+      else if (typeUpper.includes('SNACK') || typeUpper.includes('መክሰስ')) category = 'snack';
+
+      if (addFoodLog) {
+        await addFoodLog({
+          category,
+          name: meal.name,
+          amharicName: meal.amharic,
+          calories: meal.calories,
+          protein: meal.proteinG || parseInt(meal.protein) || 0,
+          carbs: meal.carbsG || 0,
+          fats: meal.fatsG || 0,
+          iron: meal.iron || 0,
+          isTsom: meal.isTsom,
+          image: meal.image
+        });
+      }
+
+      setToastMsg(
+        language === 'am'
+          ? `✨ ${meal.amharic || meal.name} ወደ ምግብ መዝገብ ተጨምሯል!`
+          : `✨ ${meal.name} added to Food Log for today!`
+      );
+    } catch (err) {
+      console.error('Failed to add planned meal to log:', err);
+      setToastMsg(
+        language === 'am'
+          ? '⚠️ ወደ መዝገብ መጨመር አልተሳካም።'
+          : '⚠️ Failed to add meal to log.'
+      );
+    } finally {
+      setTimeout(() => setToastMsg(''), 3500);
+    }
+  };
 
   const filterChips = useMemo(() => [
     { id: 'All', labelEn: 'All', labelAm: 'ሁሉም' },
@@ -631,17 +678,71 @@ const MealPlanningContent = () => {
   const handleGeneratePlan = async () => {
     setIsGeneratingPlan(true);
     try {
-      await apiClient.post('/meal-plans/generate', {}).catch(() => {});
+      const activeDayName = activeDayObj ? activeDayObj.day : 'Mon';
+      const currentMeals = activeDayObj ? activeDayObj.meals : [];
+      const isFasting = activeDayObj ? Boolean(activeDayObj.isTsom) : true;
+
+      const dailyCalorieTarget = Number(dailyStats?.targetCalories) || 2000;
+      const macroTargets = {
+        protein: Number(dailyStats?.targetProteinG) || 150,
+        carbs: Number(dailyStats?.targetCarbsG) || 250,
+        fats: Number(dailyStats?.targetFatsG) || 65,
+      };
+
+      const payload = {
+        day: activeDayName,
+        currentMeals: currentMeals.map(m => ({
+          type: m.type,
+          name: m.name,
+          calories: Number(m.calories) || 0,
+          proteinG: Number(m.proteinG) || parseInt(m.protein) || 0,
+          carbsG: Number(m.carbsG) || 0,
+          fatsG: Number(m.fatsG) || 0,
+          isTsom: Boolean(m.isTsom)
+        })),
+        dailyCalorieTarget,
+        macroTargets,
+        fastingActive: isFasting,
+        primaryGoal: 'weight_management',
+        medicalFlags: [],
+        action: 'shuffle'
+      };
+
+      const res = await apiClient.post('/meal-plans/shuffle-day', payload);
+      if (res.data && res.data.meals && Array.isArray(res.data.meals)) {
+        const newMeals = res.data.meals.map(m => ({
+          type: (m.mealType || m.type || 'LUNCH').toUpperCase(),
+          name: m.name,
+          amharic: m.amharic || '',
+          calories: Number(m.calories) || 400,
+          protein: `${m.proteinG || m.protein || 15}g`,
+          proteinG: Number(m.proteinG || m.protein) || 15,
+          carbsG: Number(m.carbsG) || 50,
+          fatsG: Number(m.fatsG) || 10,
+          tag: m.isTsom ? 'FASTING (TSOM)' : 'TRADITIONAL',
+          tagType: m.isTsom ? 'tsom' : 'trad',
+          isTsom: Boolean(m.isTsom),
+          isHeritage: true,
+          prepTimeMin: m.prepTimeMin || 20,
+          image: m.image || '/images/foods/shiro_pot.jpg'
+        }));
+
+        setWeeklyPlanDays(prev => prev.map(d => d.day === activeDayName ? { ...d, meals: newMeals } : d));
+
+        setToastMsg(
+          language === 'am'
+            ? `✨ ለ${activeDayName} የተዘጋጀው የምግብ እቅድ ከካሎሪና ፕሮቲን ግቦች ጋር ተጣጥሟል!`
+            : `✨ AI Meal Plan for ${activeDayName} updated to match your daily targets (${dailyCalorieTarget} kcal)!`
+        );
+      } else {
+        throw new Error('Invalid response payload');
+      }
+    } catch (err) {
+      console.error('Failed to generate AI meal plan shuffle:', err);
       setToastMsg(
         language === 'am'
-          ? '✨ የረቡዕ እና ዓርብ የጾም ህጎችን ያካተተ ባህላዊ የምግብ እቅድ ተዘጋጅቷል!'
-          : '✨ AI Heritage Meal Plan customized with Wednesday/Friday Tsom rules!'
-      );
-    } catch {
-      setToastMsg(
-        language === 'am'
-          ? '✨ ለተመረጠው ሳምንት የምግብ እቅድ ተዘጋጅቷል!'
-          : '✨ AI Heritage Meal Plan generated for the active week!'
+          ? '⚠️ የምግብ እቅድ ማስተካከል አልተሳካም። እባክዎ እንደገና ይሞክሩ።'
+          : '⚠️ Failed to generate AI meal plan. Please check network connection.'
       );
     } finally {
       setIsGeneratingPlan(false);
@@ -879,29 +980,53 @@ const MealPlanningContent = () => {
                               <div className="slot-macros-text" style={{ fontSize: '11.5px', color: colors.textMuted, marginTop: '2px' }}>
                                 {meal.calories} kcal • {meal.protein} {language === 'am' ? 'ፕሮቲን' : 'Protein'}
                               </div>
-                              <div className="slot-tags-cluster" style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
-                                <span style={{
-                                  fontSize: '10px',
-                                  fontWeight: 700,
-                                  padding: '2px 6px',
-                                  borderRadius: '6px',
-                                  background: meal.tagType === 'tsom' ? colors.accentLight : colors.primaryLight,
-                                  color: meal.tagType === 'tsom' ? colors.accent : colors.primary
-                                }}>
-                                  {language === 'am' ? (meal.tagAmharic || meal.tag) : meal.tag}
-                                </span>
-                              </div>
                             </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '6px', borderTop: `1px dashed ${colors.border}` }}>
+                            <div className="slot-tags-cluster" style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                              <span style={{
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                padding: '2px 6px',
+                                borderRadius: '6px',
+                                background: meal.tagType === 'tsom' ? colors.accentLight : colors.primaryLight,
+                                color: meal.tagType === 'tsom' ? colors.accent : colors.primary
+                              }}>
+                                {language === 'am' ? (meal.tagAmharic || meal.tag) : meal.tag}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              className="btn-add-to-food-log"
+                              onClick={() => handleAddMealToLog(meal, dayPlan)}
+                              title={language === 'am' ? 'ይህንን ምግብ ወደ ቀን መዝገብ ጨምር' : 'Log this planned meal to Food Logging'}
+                              style={{
+                                background: colors.primaryBtn,
+                                color: '#FFFFFF',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '4px 10px',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              + {language === 'am' ? 'ወደ መዝገብ ጨምር' : 'Add to Log'}
+                            </button>
                           </div>
                         </div>
                       ))
                     )}
 
-                    {/* Add Snack Slot */}
+                    {/* Add to Log (Snack Suggestion) Slot */}
                     <button
                       className="btn-add-snack-slot"
                       onClick={() => handleShuffleDay(dayPlan, 'add_snack')}
                       disabled={shufflingDays[dayPlan.fullDate || dayPlan.day]}
+                      title={language === 'am' ? 'መክሰስ ወደ መዝገብ ጨምር' : 'Add suggested snack to log'}
                       style={{
                         marginTop: 'auto',
                         padding: '8px',
@@ -915,7 +1040,7 @@ const MealPlanningContent = () => {
                         opacity: shufflingDays[dayPlan.fullDate || dayPlan.day] ? 0.6 : 1
                       }}
                     >
-                      + {language === 'am' ? 'መክሰስ ጨምር' : 'Add Snack'}
+                      + {language === 'am' ? 'ወደ መዝገብ ጨምር (መክሰስ)' : 'Add to Log (Snack)'}
                     </button>
                   </div>
                 </div>

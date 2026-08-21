@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -234,6 +234,16 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
   const handlePhotoSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const validMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validMimeTypes.includes((file.type || '').toLowerCase())) {
+      setValidationError(
+        language === 'am'
+          ? 'እባክዎ የተፈቀደ የፎቶ አይነት ይምረጡ (JPEG, PNG, WEBP, GIF)'
+          : 'Unsupported image file type. Please upload a valid image (JPEG, PNG, WEBP, or GIF).'
+      );
+      return;
+    }
 
     if (file.size > 5 * 1024 * 1024) {
       setValidationError(language === 'am' ? 'ምስሉ በጣም ትልቅ ነው። እባክዎ ከ 5MB በታች የሆነ ምስል ይምረጡ።' : 'Image file is too large. Please choose an image under 5MB.');
