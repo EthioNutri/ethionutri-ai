@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import EthioNutriLogo from '../common/EthioNutriLogo';
 
 const navItems = [
   {
@@ -95,28 +96,9 @@ const Sidebar = () => {
   return (
     <aside className="app-sidebar">
       {/* Brand Header */}
-      <Link to="/" className="sidebar-brand-box" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <div className="sidebar-logo-mark">
-          <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
-            <circle cx="18" cy="18" r="17" fill="#F4EAE0" stroke="#C97B3D" strokeWidth="1.5" />
-            <path
-              d="M18 7C12 11 10 18 14 24C17 28.5 24 28 27 23C30 18 26 10 18 7Z"
-              fill="#1F4B3F"
-            />
-            <path
-              d="M18 10C15 14 16 21 21 24"
-              stroke="#F4EAE0"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <circle cx="21" cy="14" r="2.5" fill="#C97B3D" />
-          </svg>
-        </div>
-        <div className="sidebar-brand-text">
-          <h2 className="sidebar-brand-name">EthioNutri AI</h2>
-          <p className="sidebar-brand-tagline">Modern Heritage Nutrition</p>
-        </div>
-      </Link>
+      <div className="sidebar-brand-box" style={{ padding: '16px 12px 20px', display: 'flex', justifyContent: 'flex-start' }}>
+        <EthioNutriLogo />
+      </div>
 
       {/* Navigation List */}
       <nav className="sidebar-nav">
