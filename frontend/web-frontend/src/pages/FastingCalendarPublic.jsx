@@ -1,66 +1,121 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import {
+  toEthiopianDate,
+  getEthiopianFastingInfo,
+  ETHIOPIAN_MONTHS
+} from '../utils/ethiopianCalendar';
 
 const FastingCalendarPublic = () => {
   const { language } = useLanguage();
-  const [selectedMonthIdx, setSelectedMonthIdx] = useState(0);
-  const [selectedDay, setSelectedDay] = useState(11);
+  const [anchorDate, setAnchorDate] = useState(new Date());
+  const [selectedDayNum, setSelectedDayNum] = useState(new Date().getDate());
 
-  const months = [
-    { en: 'October 2026', am: 'ጥቅምት 2019 ዓ.ም.', fastCountEn: '10 Fasting Days', fastCountAm: '10 የጾም ቀናት' },
-    { en: 'November 2026', am: 'ኅዳር 2019 ዓ.ም.', fastCountEn: '12 Fasting Days', fastCountAm: '12 የጾም ቀናት' },
-    { en: 'December 2026', am: 'ታኅሣሥ 2019 ዓ.ም.', fastCountEn: '18 Fasting Days (Tsome Nebiyat)', fastCountAm: '18 የጾም ቀናት (የነቢያት ጾም)' },
-  ];
+  const year = anchorDate.getFullYear();
+  const month = anchorDate.getMonth();
 
-  const currentMonthData = months[selectedMonthIdx];
+  // Dynamic Month Matrix computation using standard JS Date API & Ethiopian Calendar utilities
+  const calendarCells = useMemo(() => {
+    const cells = [];
+    const firstDayOfMonth = new Date(year, month, 1);
+    const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+    const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+    const prevMonthDays = new Date(year, month, 0).getDate();
+
+    const todayStr = new Date().toDateString();
+
+    // 1. Previous month trailing padding
+    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+      const dNum = prevMonthDays - i;
+      const gDate = new Date(year, month - 1, dNum);
+      const ethDate = toEthiopianDate(gDate);
+      const fastInfo = getEthiopianFastingInfo(ethDate.year, ethDate.month, ethDate.day);
+      cells.push({
+        day: dNum,
+        isCurrentMonth: false,
+        isToday: gDate.toDateString() === todayStr,
+        isFasting: fastInfo.isFasting,
+        fastInfo,
+        gDate,
+        ethDate
+      });
+    }
+
+    // 2. Active month days
+    for (let d = 1; d <= totalDaysInMonth; d++) {
+      const gDate = new Date(year, month, d);
+      const ethDate = toEthiopianDate(gDate);
+      const fastInfo = getEthiopianFastingInfo(ethDate.year, ethDate.month, ethDate.day);
+      cells.push({
+        day: d,
+        isCurrentMonth: true,
+        isToday: gDate.toDateString() === todayStr,
+        isFasting: fastInfo.isFasting,
+        fastInfo,
+        gDate,
+        ethDate
+      });
+    }
+
+    // 3. Next month leading padding to complete 35 or 42 cells (5 or 6 rows)
+    const targetLength = cells.length > 35 ? 42 : 35;
+    let nextDay = 1;
+    while (cells.length < targetLength) {
+      const gDate = new Date(year, month + 1, nextDay);
+      const ethDate = toEthiopianDate(gDate);
+      const fastInfo = getEthiopianFastingInfo(ethDate.year, ethDate.month, ethDate.day);
+      cells.push({
+        day: nextDay,
+        isCurrentMonth: false,
+        isToday: gDate.toDateString() === todayStr,
+        isFasting: fastInfo.isFasting,
+        fastInfo,
+        gDate,
+        ethDate
+      });
+      nextDay++;
+    }
+
+    return cells;
+  }, [year, month]);
+
+  const activeMonthCells = useMemo(() => {
+    return calendarCells.filter((c) => c.isCurrentMonth);
+  }, [calendarCells]);
+
+  const fastingDaysCount = useMemo(() => {
+    return activeMonthCells.filter((c) => c.isFasting).length;
+  }, [activeMonthCells]);
+
+  // Active selected cell details
+  const activeCellObj = useMemo(() => {
+    return (
+      activeMonthCells.find((c) => c.day === selectedDayNum) ||
+      activeMonthCells[0] ||
+      calendarCells[0]
+    );
+  }, [activeMonthCells, selectedDayNum, calendarCells]);
+
+  // Month navigation handlers
+  const handlePrevMonth = () => {
+    setAnchorDate(new Date(year, month - 1, 1));
+    setSelectedDayNum(1);
+  };
+
+  const handleNextMonth = () => {
+    setAnchorDate(new Date(year, month + 1, 1));
+    setSelectedDayNum(1);
+  };
+
+  const monthYearLabelEn = anchorDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const ethMid = toEthiopianDate(new Date(year, month, 15));
+  const ethMonthMeta = ETHIOPIAN_MONTHS[ethMid.month - 1] || ETHIOPIAN_MONTHS[0];
+  const monthYearLabelAm = `${ethMonthMeta.nameAm} ${ethMid.year} ዓ.ም. (${monthYearLabelEn})`;
 
   const weekdays = language === 'am'
     ? ['እሑድ', 'ሰኞ', 'ማክሰኞ', 'ረቡዕ', 'ሐሙስ', 'ዓርብ', 'ቅዳሜ']
     : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-  // Calendar dates matrix for preview (35 cells)
-  const calendarDays = [
-    { day: 25, isCurrentMonth: false, isFasting: false },
-    { day: 26, isCurrentMonth: false, isFasting: false },
-    { day: 27, isCurrentMonth: false, isFasting: true, nameEn: 'Wednesday Fast (Tsome Dihnet)', nameAm: 'የረቡዕ ጾም (ጾመ ድኅነት)' },
-    { day: 28, isCurrentMonth: false, isFasting: false },
-    { day: 29, isCurrentMonth: false, isFasting: true, nameEn: 'Friday Fast', nameAm: 'የአርብ ጾም' },
-    { day: 30, isCurrentMonth: false, isFasting: false },
-    { day: 1, isCurrentMonth: true, isFasting: false },
-
-    { day: 2, isCurrentMonth: true, isFasting: false },
-    { day: 3, isCurrentMonth: true, isFasting: false },
-    { day: 4, isCurrentMonth: true, isFasting: true, nameEn: 'Wednesday Fast', nameAm: 'የረቡዕ ጾም' },
-    { day: 5, isCurrentMonth: true, isFasting: false },
-    { day: 6, isCurrentMonth: true, isFasting: true, nameEn: 'Friday Fast', nameAm: 'የአርብ ጾም' },
-    { day: 7, isCurrentMonth: true, isFasting: false },
-    { day: 8, isCurrentMonth: true, isFasting: false },
-
-    { day: 9, isCurrentMonth: true, isFasting: false },
-    { day: 10, isCurrentMonth: true, isFasting: false },
-    { day: 11, isCurrentMonth: true, isFasting: true, isCurrentDay: true, nameEn: 'Wednesday Fast (Tsome Dihnet)', nameAm: 'የረቡዕ ጾም (ጾመ ድኅነት)' },
-    { day: 12, isCurrentMonth: true, isFasting: false },
-    { day: 13, isCurrentMonth: true, isFasting: true, nameEn: 'Friday Fast', nameAm: 'የአርብ ጾም' },
-    { day: 14, isCurrentMonth: true, isFasting: false },
-    { day: 15, isCurrentMonth: true, isFasting: false },
-
-    { day: 16, isCurrentMonth: true, isFasting: false },
-    { day: 17, isCurrentMonth: true, isFasting: false },
-    { day: 18, isCurrentMonth: true, isFasting: true, nameEn: 'Wednesday Fast', nameAm: 'የረቡዕ ጾም' },
-    { day: 19, isCurrentMonth: true, isFasting: false },
-    { day: 20, isCurrentMonth: true, isFasting: true, nameEn: 'Friday Fast', nameAm: 'የአርብ ጾም' },
-    { day: 21, isCurrentMonth: true, isFasting: false },
-    { day: 22, isCurrentMonth: true, isFasting: false },
-
-    { day: 23, isCurrentMonth: true, isFasting: false },
-    { day: 24, isCurrentMonth: true, isFasting: false },
-    { day: 25, isCurrentMonth: true, isFasting: true, nameEn: 'Wednesday Fast', nameAm: 'የረቡዕ ጾም' },
-    { day: 26, isCurrentMonth: true, isFasting: false },
-    { day: 27, isCurrentMonth: true, isFasting: true, nameEn: 'Friday Fast', nameAm: 'የአርብ ጾም' },
-    { day: 28, isCurrentMonth: true, isFasting: false },
-    { day: 29, isCurrentMonth: true, isFasting: false },
-  ];
 
   const fastingPeriods = [
     {
@@ -97,8 +152,6 @@ const FastingCalendarPublic = () => {
     },
   ];
 
-  const activeDayObj = calendarDays.find((d) => d.day === selectedDay && d.isCurrentMonth) || calendarDays[16];
-
   return (
     <div className="fasting-calendar-public-page">
       {/* Hero Section */}
@@ -118,7 +171,7 @@ const FastingCalendarPublic = () => {
         </div>
       </section>
 
-      {/* Interactive Calendar Preview & Day Details */}
+      {/* Interactive Live Calendar Preview & Day Details */}
       <section className="calendar-preview-section">
         <div className="calendar-preview-container">
           <div className="calendar-grid-wrapper">
@@ -126,17 +179,17 @@ const FastingCalendarPublic = () => {
             <div className="calendar-month-header">
               <div className="calendar-title-group">
                 <span className="month-name">
-                  {language === 'am' ? currentMonthData.am : currentMonthData.en}
+                  {language === 'am' ? monthYearLabelAm : monthYearLabelEn}
                 </span>
                 <span className="fasting-count-tag">
-                  {language === 'am' ? currentMonthData.fastCountAm : currentMonthData.fastCountEn}
+                  {language === 'am' ? `${fastingDaysCount} የጾም ቀናት` : `${fastingDaysCount} Fasting Days`}
                 </span>
               </div>
               <div className="calendar-nav-buttons">
                 <button
                   type="button"
                   className="cal-nav-btn"
-                  onClick={() => setSelectedMonthIdx((prev) => (prev === 0 ? months.length - 1 : prev - 1))}
+                  onClick={handlePrevMonth}
                   title="Previous Month"
                 >
                   &larr;
@@ -144,7 +197,7 @@ const FastingCalendarPublic = () => {
                 <button
                   type="button"
                   className="cal-nav-btn"
-                  onClick={() => setSelectedMonthIdx((prev) => (prev === months.length - 1 ? 0 : prev + 1))}
+                  onClick={handleNextMonth}
                   title="Next Month"
                 >
                   &rarr;
@@ -152,7 +205,7 @@ const FastingCalendarPublic = () => {
               </div>
             </div>
 
-            {/* Days of Week */}
+            {/* Days of Week Header */}
             <div className="cal-days-header-row">
               {weekdays.map((d, i) => (
                 <div key={d} className={`cal-weekday-label ${i === 3 || i === 5 ? 'highlight' : ''}`}>
@@ -161,24 +214,24 @@ const FastingCalendarPublic = () => {
               ))}
             </div>
 
-            {/* Days Grid */}
+            {/* Live Days Grid */}
             <div className="cal-days-grid">
-              {calendarDays.map((item, idx) => {
-                const isSelected = item.isCurrentMonth && item.day === selectedDay;
+              {calendarCells.map((item, idx) => {
+                const isSelected = item.isCurrentMonth && item.day === selectedDayNum;
                 return (
                   <button
                     key={idx}
                     type="button"
                     className={`cal-day-cell ${!item.isCurrentMonth ? 'other-month' : ''} ${
                       item.isFasting ? 'is-fasting' : ''
-                    } ${item.isCurrentDay ? 'is-today' : ''} ${isSelected ? 'selected' : ''}`}
+                    } ${item.isToday ? 'is-today' : ''} ${isSelected ? 'selected' : ''}`}
                     onClick={() => {
-                      if (item.isCurrentMonth) setSelectedDay(item.day);
+                      if (item.isCurrentMonth) setSelectedDayNum(item.day);
                     }}
                   >
                     <span className="day-number">{item.day}</span>
                     {item.isFasting && (
-                      <span className="fasting-dot-indicator" title="Fasting Day (Tsom)" />
+                      <span className="fasting-dot-indicator" title={item.fastInfo?.fastNameEn || "Fasting Day"} />
                     )}
                   </button>
                 );
@@ -189,7 +242,7 @@ const FastingCalendarPublic = () => {
             <div className="cal-legend-row">
               <div className="legend-item">
                 <span className="legend-swatch fasting" />
-                <span>{language === 'am' ? 'የጾም ቀን (ቀይ/ቡናማ)' : 'Fasting Day (Terracotta)'}</span>
+                <span>{language === 'am' ? 'የጾም ቀን (ቀይ/ቡናማ)' : 'Fasting Day (Tsom)'}</span>
               </div>
               <div className="legend-item">
                 <span className="legend-swatch non-fasting" />
@@ -202,36 +255,40 @@ const FastingCalendarPublic = () => {
             </div>
           </div>
 
-          {/* Day Details Card */}
+          {/* Dynamic Day Details Card */}
           <div className="day-details-panel">
             <div className="panel-header">
               <span className="panel-badge">
-                {activeDayObj.isFasting ? (
+                {activeCellObj.isFasting ? (
                   <span className="tag-fasting">🌿 {language === 'am' ? 'የጾም ቀን (ጾም)' : 'Fasting Day (Tsom)'}</span>
                 ) : (
                   <span className="tag-regular">🍖 {language === 'am' ? 'የፍስክ ቀን' : 'Feasting Day'}</span>
                 )}
               </span>
               <h3 className="panel-date-title">
-                {language === 'am' ? `ጥቅምት ${selectedDay} ቀን 2019 ዓ.ም.` : `October ${selectedDay}, 2026`}
+                {activeCellObj.gDate.toLocaleDateString(language === 'am' ? 'en-US' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                {' '}
+                <span style={{ fontSize: '13px', color: 'var(--terracotta)', fontWeight: 700 }}>
+                  ({ETHIOPIAN_MONTHS[activeCellObj.ethDate.month - 1]?.nameAm} {activeCellObj.ethDate.day} ቀን {activeCellObj.ethDate.year} ዓ.ም.)
+                </span>
               </h3>
               <p className="panel-period-name">
-                {activeDayObj.isFasting
-                  ? (language === 'am' ? (activeDayObj.nameAm || 'የረቡዕ ቀኖናዊ ጾም') : (activeDayObj.nameEn || 'Wednesday Canonical Fast'))
+                {activeCellObj.isFasting
+                  ? (language === 'am' ? activeCellObj.fastInfo.fastNameAm : activeCellObj.fastInfo.fastNameEn)
                   : (language === 'am' ? 'መደበኛ የፍስክ ቀን' : 'Regular Feasting Nutrition Day')}
               </p>
             </div>
 
             <div className="panel-rules-box">
               <h4 className="rules-title">
-                {activeDayObj.isFasting
+                {activeCellObj.isFasting
                   ? (language === 'am' ? 'የተፈቀዱ የጾም ምግቦች እና ስርዓቶች' : 'Allowed Fasting Foods & Nutrition')
                   : (language === 'am' ? 'የተመጣጠነ የፍስክ አመጋገብ መመሪያ' : 'Standard Nutrition Guidance')}
               </h4>
-              {activeDayObj.isFasting ? (
+              {activeCellObj.isFasting ? (
                 <ul className="rules-list">
                   <li>🌱 <strong>{language === 'am' ? '100% ከዕፅዋት የሚዘጋጅ፡' : '100% Plant-Based:'}</strong> {language === 'am' ? 'ንጹህ የጤፍ እንጀራ፣ ምስር ወጥ፣ ሽሮ ተጋሚኖ፣ ክክ አልጫ፣ ጎመን፣ አትክልት፣ ሱፍ ፍርፍር፣ ተልባ።' : 'Pure teff injera, misir wot, shiro, kik alicha, gomen, atkilt.'}</li>
-                  <li>❌ <strong>{language === 'am' ? 'የተከለከለ፡' : 'Restricted:'}</strong> {language === 'am' ? 'ስጋ፣ ዶሮ፣ እንቁላል፣ ወተት፣ ቅቤ፣ አይብ እና የእንስሳት ተዋጽኦዎች።' : 'No meat, poultry, fish, eggs, milk, cheese, or animal fats.'}</li>
+                  <li>❌ <strong>{language === 'am' ? 'የተከለከለ፡' : 'Restricted:'}</strong> {language === 'am' ? 'ስጋ፣ ዶሮ፣ እንቁላል፣ ወተት፣ ቅቤ፣ አይብ እና የእንስሳት ተዋጽኦዎች።' : 'No meat, poultry, eggs, milk, cheese, or animal fats.'}</li>
                   <li>💪 <strong>{language === 'am' ? 'የታለመ ፕሮቲን፡' : 'Target Protein:'}</strong> {language === 'am' ? 'ከ45–65ግ በሽሮ፣ ምስር እና ሱፍ አማካኝነት።' : '45–65g via chickpea shiro, lentils, and suf firfir.'}</li>
                 </ul>
               ) : (
