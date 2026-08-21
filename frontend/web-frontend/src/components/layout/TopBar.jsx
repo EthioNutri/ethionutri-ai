@@ -75,7 +75,40 @@ const TopBar = ({ onSearch }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const currentTitle = pageTitleMap[location.pathname] || fastingCycle.title;
+  // Calculate real date dynamically for top bar date display
+  const todayObj = new Date();
+  const formattedDateStr = todayObj.toLocaleDateString(language === 'am' ? 'en-US' : 'en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  });
+
+  const isTodayFasting = todayObj.getDay() === 3 || todayObj.getDay() === 5 || (fastingCycle?.allowedBadge && fastingCycle.allowedBadge.toLowerCase().includes('fasting'));
+
+  let titleContent;
+  if (location.pathname === '/dashboard') {
+    titleContent = (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span>{formattedDateStr}</span>
+        {isTodayFasting && (
+          <span style={{
+            fontSize: '11px',
+            fontWeight: 800,
+            padding: '2px 8px',
+            borderRadius: '12px',
+            background: 'rgba(201, 123, 61, 0.18)',
+            color: '#C97B3D',
+            border: '1px solid rgba(201, 123, 61, 0.4)',
+            letterSpacing: '0.3px'
+          }}>
+            🌱 {language === 'am' ? 'የጾም ቀን' : 'Fasting'}
+          </span>
+        )}
+      </div>
+    );
+  } else {
+    titleContent = pageTitleMap[location.pathname] || fastingCycle.title;
+  }
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -113,8 +146,8 @@ const TopBar = ({ onSearch }) => {
         </div>
       )}
 
-      {/* Left: Search input (only rendered on search-centric screens) */}
-      {(location.pathname === '/food-logging' || location.pathname === '/recipes') && (
+      {/* Left: Search input (only rendered on recipes screen) */}
+      {location.pathname === '/recipes' && (
         <div className="topbar-search-wrap">
           <div className="search-icon-inside">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E857E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -134,7 +167,7 @@ const TopBar = ({ onSearch }) => {
 
       {/* Center: Context/Page Title in Burnt Orange */}
       <div className="topbar-center-title">
-        {currentTitle}
+        {titleContent}
       </div>
 
       {/* Right: Icon Cluster & Profile Dropdown */}
@@ -274,7 +307,7 @@ const TopBar = ({ onSearch }) => {
 
               {/* Fasting / Nutrition Status Badge */}
               <div className="google-status-pill-row">
-                <span className="google-status-tag">🌿 {language === 'am' ? 'የጾም ስርዓት፡ የረቡዕ ጾም' : 'Fasting: Wednesday Fast'}</span>
+                <span className="google-status-tag">🌿 {language === 'am' ? `የጾም ስርዓት፡ ${fastingCycle?.title || 'ጾም'}` : `Fasting: ${fastingCycle?.title || 'Active'}`}</span>
                 <span className="google-status-tag pro">💪 42g Protein</span>
               </div>
 
