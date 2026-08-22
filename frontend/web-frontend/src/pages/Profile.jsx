@@ -72,6 +72,34 @@ const ACTIVITY_LEVEL_OPTIONS = [
 
 const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80';
 
+const ProfileSkeleton = ({ isDark }) => (
+  <div style={{ padding: '24px 0', width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
+    <style>{`
+      @keyframes skeleton-pulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 0.25; }
+        100% { opacity: 0.6; }
+      }
+      .skeleton-pulse { animation: skeleton-pulse 1.5s ease-in-out infinite; }
+    `}</style>
+    <div className="skeleton-pulse" style={{ height: '32px', width: '320px', backgroundColor: isDark ? '#374151' : '#E5E7EB', borderRadius: '8px', marginBottom: '8px' }} />
+    <div className="skeleton-pulse" style={{ height: '18px', width: '480px', backgroundColor: isDark ? '#374151' : '#E5E7EB', borderRadius: '6px', marginBottom: '28px' }} />
+
+    <div className="skeleton-pulse" style={{ backgroundColor: isDark ? '#1F2937' : '#FFFFFF', borderRadius: '16px', padding: '24px', marginBottom: '28px', display: 'flex', gap: '24px', alignItems: 'center', border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}` }}>
+      <div style={{ width: '88px', height: '88px', borderRadius: '50%', backgroundColor: isDark ? '#374151' : '#E5E7EB' }} />
+      <div style={{ flex: 1 }}>
+        <div style={{ height: '24px', width: '220px', backgroundColor: isDark ? '#374151' : '#E5E7EB', borderRadius: '6px', marginBottom: '10px' }} />
+        <div style={{ height: '16px', width: '340px', backgroundColor: isDark ? '#374151' : '#E5E7EB', borderRadius: '4px', marginBottom: '12px' }} />
+        <div style={{ height: '28px', width: '180px', backgroundColor: isDark ? '#374151' : '#E5E7EB', borderRadius: '20px' }} />
+      </div>
+    </div>
+
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '28px' }}>
+      <div className="skeleton-pulse" style={{ height: '360px', backgroundColor: isDark ? '#1F2937' : '#FFFFFF', borderRadius: '16px', border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`, padding: '24px' }} />
+      <div className="skeleton-pulse" style={{ height: '360px', backgroundColor: isDark ? '#1F2937' : '#FFFFFF', borderRadius: '16px', border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`, padding: '24px' }} />
+    </div>
+  </div>
+);
 
 ﻿const Profile = () => {
   const { user, updateUserProfile: updateAuthUser } = useAuth();
@@ -84,28 +112,27 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
   const [isEditing, setIsEditing] = useState(true);
   const [isDirty, setIsDirty] = useState(false);
 
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState(DEFAULT_AVATAR);
+  const [fullName, setFullName] = useState(user?.fullName || user?.full_name || user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState(user?.phone || user?.phoneNumber || user?.phone_number || '');
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar || user?.avatarUrl || DEFAULT_AVATAR);
   
-  const [age, setAge] = useState(28);
-  const [biologicalSex, setBiologicalSex] = useState('female');
-  const [heightCm, setHeightCm] = useState(168);
-  const [weightKg, setWeightKg] = useState(62);
-  const [targetWeightKg, setTargetWeightKg] = useState(60);
-  const [activityLevel, setActivityLevel] = useState('moderately_active');
-  const [dailyCalorieTarget, setDailyCalorieTarget] = useState(2000);
+  const [age, setAge] = useState(user?.healthProfile?.age || user?.age || 28);
+  const [biologicalSex, setBiologicalSex] = useState(user?.healthProfile?.biologicalSex || user?.biological_sex || 'female');
+  const [heightCm, setHeightCm] = useState(user?.healthProfile?.heightCm || user?.height_cm || 170);
+  const [weightKg, setWeightKg] = useState(user?.healthProfile?.weightKg || user?.weight_kg || 65);
+  const [targetWeightKg, setTargetWeightKg] = useState(user?.healthProfile?.targetWeightKg || user?.target_weight_kg || 65);
+  const [activityLevel, setActivityLevel] = useState(user?.healthProfile?.activityLevel || user?.activity_level || 'moderately_active');
+  const [dailyCalorieTarget, setDailyCalorieTarget] = useState(user?.nutritionGoals?.dailyCalorieGoal || user?.dailyCalorieTarget || 2000);
 
-  const [fastingPractice, setFastingPractice] = useState('orthodox_tsom');
-  const [fastingStrictness, setFastingStrictness] = useState('strict_vegan');
+  const [fastingPractice, setFastingPractice] = useState(user?.healthProfile?.fastingPractice || 'orthodox_tsom');
+  const [fastingStrictness, setFastingStrictness] = useState(user?.healthProfile?.fastingStrictness || 'strict_vegan');
   const [dietaryRestrictions, setDietaryRestrictions] = useState([]);
 
   const [medicalFlags, setMedicalFlags] = useState([]);
-  const [healthObjective, setHealthObjective] = useState('weight_management');
+  const [healthObjective, setHealthObjective] = useState(user?.healthProfile?.healthObjective || 'weight_management');
 
-  const [preferredLanguage, setPreferredLanguage] = useState('en');
-  const [themeMode, setThemeMode] = useState('light');
+  const [preferredLanguage, setPreferredLanguage] = useState(language || 'en');
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -120,16 +147,16 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
       const hp = userObj.healthProfile || {};
       const ng = userObj.nutritionGoals || {};
 
-      const fetchedName = userObj.fullName || userObj.full_name || userObj.name || `${userObj.firstName || ''} ${userObj.lastName || ''}`.trim() || 'Selamawit Kebede';
-      const fetchedEmail = userObj.email || 'user@ethionutri.ai';
-      const fetchedPhone = userObj.phone || userObj.phoneNumber || userObj.phone_number || '+251 91 123 4567';
+      const fetchedName = userObj.fullName || userObj.full_name || userObj.name || `${userObj.firstName || ''} ${userObj.lastName || ''}`.trim() || userObj.email?.split('@')[0] || '';
+      const fetchedEmail = userObj.email || '';
+      const fetchedPhone = userObj.phone || userObj.phoneNumber || userObj.phone_number || '';
       const fetchedAvatar = userObj.avatar || userObj.avatarUrl || userObj.profilePhotoUrl || userObj.avatar_url || DEFAULT_AVATAR;
 
       const fetchedAge = hp.age || userObj.age || 28;
       const fetchedSex = hp.biologicalSex || userObj.biological_sex || userObj.biologicalSex || 'female';
-      const fetchedHeight = hp.heightCm || userObj.height_cm || userObj.heightCm || 168;
-      const fetchedWeight = hp.weightKg || userObj.weight_kg || userObj.weightKg || 62;
-      const fetchedTargetWeight = hp.targetWeightKg || userObj.target_weight_kg || userObj.targetWeightKg || 60;
+      const fetchedHeight = hp.heightCm || userObj.height_cm || userObj.heightCm || 170;
+      const fetchedWeight = hp.weightKg || userObj.weight_kg || userObj.weightKg || 65;
+      const fetchedTargetWeight = hp.targetWeightKg || userObj.target_weight_kg || userObj.targetWeightKg || 65;
       const fetchedActivity = hp.activityLevel || userObj.activity_level || userObj.activityLevel || 'moderately_active';
 
       const fetchedFasting = hp.fastingPractice || userObj.fasting_practice || userObj.fastingPractice || 'orthodox_tsom';
@@ -142,7 +169,6 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
       const fetchedRestrictions = Array.isArray(rawRestrictions) ? rawRestrictions : [rawRestrictions];
 
       const fetchedLang = userObj.preferred_language || userObj.languagePreference || userObj.preferredLanguage || language || 'en';
-      const fetchedTheme = userObj.theme_mode || userObj.themeMode || theme || 'light';
       const fetchedCalorieTarget = ng.dailyCalorieGoal || userObj.daily_calorie_target || userObj.dailyCalorieTarget || 2000;
       const fetchedObjective = hp.healthObjective || userObj.healthObjective || 'weight_management';
 
@@ -162,7 +188,6 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
         medicalFlags: fetchedFlags,
         dietaryRestrictions: fetchedRestrictions,
         preferredLanguage: fetchedLang,
-        themeMode: fetchedTheme,
         dailyCalorieTarget: Number(fetchedCalorieTarget),
         healthObjective: fetchedObjective
       };
@@ -171,7 +196,6 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
       populateFormState(parsedState);
       
       if (fetchedLang && fetchedLang !== language) setLanguage(fetchedLang);
-      if (fetchedTheme && fetchedTheme !== theme) setTheme(fetchedTheme);
     } catch (err) {
       console.warn('Error loading remote user profile:', err);
     } finally {
@@ -186,16 +210,15 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
     setAvatarUrl(s.avatarUrl || DEFAULT_AVATAR);
     setAge(s.age || 28);
     setBiologicalSex(s.biologicalSex || 'female');
-    setHeightCm(s.heightCm || 168);
-    setWeightKg(s.weightKg || 62);
-    setTargetWeightKg(s.targetWeightKg || 60);
+    setHeightCm(s.heightCm || 170);
+    setWeightKg(s.weightKg || 65);
+    setTargetWeightKg(s.targetWeightKg || 65);
     setActivityLevel(s.activityLevel || 'moderately_active');
     setFastingPractice(s.fastingPractice || 'orthodox_tsom');
     setFastingStrictness(s.fastingStrictness || 'strict_vegan');
     setMedicalFlags(s.medicalFlags || []);
     setDietaryRestrictions(s.dietaryRestrictions || []);
     setPreferredLanguage(s.preferredLanguage || 'en');
-    setThemeMode(s.themeMode || 'light');
     setDailyCalorieTarget(s.dailyCalorieTarget || 2000);
     setHealthObjective(s.healthObjective || 'weight_management');
     setIsDirty(false);
@@ -348,10 +371,11 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
     }
   };
 
-  const activeFastingConfig = FASTING_PRACTICE_OPTIONS.find(p => p.id === fastingPractice) || FASTING_PRACTICE_OPTIONS[0];
+  if (isLoading) {
+    return <ProfileSkeleton isDark={isDark} />;
+  }
 
-
-﻿  return (
+  return (
     <div style={{
       maxWidth: '1140px', margin: '0 auto', padding: '24px 20px 120px',
       fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -432,7 +456,7 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
         </div>
 
         <div style={{ flex: 1, minWidth: '220px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 6px', color: isDark ? '#FFFFFF' : '#111827' }}>{fullName || 'Selamawit Kebede'}</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 6px', color: isDark ? '#FFFFFF' : '#111827' }}>{fullName || 'User Profile'}</h2>
           <div style={{ display: 'flex', gap: '16px', color: isDark ? '#9CA3AF' : '#6B7280', fontSize: '13.5px', marginBottom: '12px', flexWrap: 'wrap' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Mail size={14} /> {email}</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Phone size={14} /> {phone || 'Not set'}</span>
@@ -671,10 +695,10 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
             <div>
               <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, marginBottom: '6px', color: isDark ? '#D1D5DB' : '#4B5563' }}>{language === 'am' ? 'የገጽታ ቀለም (Theme Mode)' : 'Theme Mode'}</label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <button type="button" disabled={!isEditing} onClick={() => handleFieldChange(setThemeMode, 'light')} style={{ padding: '10px', borderRadius: '10px', border: themeMode === 'light' ? '2px solid #059669' : `1px solid ${isDark ? '#4B5563' : '#E5E7EB'}`, backgroundColor: themeMode === 'light' ? '#ECFDF5' : (isDark ? '#374151' : '#FFFFFF'), color: themeMode === 'light' ? '#065F46' : (isDark ? '#9CA3AF' : '#4B5563'), fontWeight: themeMode === 'light' ? 600 : 500, cursor: isEditing ? 'pointer' : 'default', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <button type="button" disabled={!isEditing} onClick={() => { setTheme('light'); setIsDirty(true); }} style={{ padding: '10px', borderRadius: '10px', border: theme === 'light' ? '2px solid #059669' : `1px solid ${isDark ? '#4B5563' : '#E5E7EB'}`, backgroundColor: theme === 'light' ? '#ECFDF5' : (isDark ? '#374151' : '#FFFFFF'), color: theme === 'light' ? '#065F46' : (isDark ? '#9CA3AF' : '#4B5563'), fontWeight: theme === 'light' ? 600 : 500, cursor: isEditing ? 'pointer' : 'default', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   <Sun size={16} /> Light Mode
                 </button>
-                <button type="button" disabled={!isEditing} onClick={() => handleFieldChange(setThemeMode, 'dark')} style={{ padding: '10px', borderRadius: '10px', border: themeMode === 'dark' ? '2px solid #059669' : `1px solid ${isDark ? '#4B5563' : '#E5E7EB'}`, backgroundColor: themeMode === 'dark' ? 'rgba(5, 150, 105, 0.2)' : (isDark ? '#374151' : '#FFFFFF'), color: themeMode === 'dark' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#4B5563'), fontWeight: themeMode === 'dark' ? 600 : 500, cursor: isEditing ? 'pointer' : 'default', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <button type="button" disabled={!isEditing} onClick={() => { setTheme('dark'); setIsDirty(true); }} style={{ padding: '10px', borderRadius: '10px', border: theme === 'dark' ? '2px solid #059669' : `1px solid ${isDark ? '#4B5563' : '#E5E7EB'}`, backgroundColor: theme === 'dark' ? 'rgba(5, 150, 105, 0.2)' : (isDark ? '#374151' : '#FFFFFF'), color: theme === 'dark' ? '#FFFFFF' : (isDark ? '#9CA3AF' : '#4B5563'), fontWeight: theme === 'dark' ? 600 : 500, cursor: isEditing ? 'pointer' : 'default', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   <Moon size={16} /> Dark Mode
                 </button>
               </div>

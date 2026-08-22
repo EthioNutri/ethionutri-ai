@@ -285,8 +285,8 @@ const TopBar = ({ onSearch }) => {
                   </div>
                 </div>
 
-                <h3 className="google-hero-name">{user?.name || 'Selamawit Kebede'}</h3>
-                <p className="google-hero-email">{user?.email || 'selamawit@ethionutri.ai'}</p>
+                <h3 className="google-hero-name">{user?.fullName || user?.full_name || user?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email?.split('@')[0]) || 'User'}</h3>
+                <p className="google-hero-email">{user?.email || ''}</p>
 
                 {/* Manage Account Pill Button */}
                 <button
