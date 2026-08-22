@@ -371,6 +371,8 @@ const ProfileSkeleton = ({ isDark }) => (
     }
   };
 
+  const activeFastingConfig = FASTING_PRACTICE_OPTIONS.find(p => p.id === fastingPractice) || FASTING_PRACTICE_OPTIONS[0];
+
   if (isLoading) {
     return <ProfileSkeleton isDark={isDark} />;
   }
