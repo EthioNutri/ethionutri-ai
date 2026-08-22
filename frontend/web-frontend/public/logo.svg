@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Background Badge: EthioNutri Primary Growth Green -->
+  <circle cx="256" cy="256" r="248" fill="#125238" />
+
+  <!-- Outer Leaf Contour and Curved Midrib Vein -->
+  <g 
+    fill="none" 
+    stroke="#FFFFFF" 
+    stroke-width="26" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  >
+    <!-- Organic Leaf Contour (Top-Right Tip Arching Down to Lower-Left Base) -->
+    <path d="M 186 348 
+             C 174 246, 214 164, 328 124 
+             C 342 118, 356 128, 354 144 
+             C 342 254, 276 338, 186 348 Z" />
+
+    <!-- Organic Midrib Vein Arching Upward from Stem Base -->
+    <path d="M 170 354 C 188 286, 242 242, 280 236" />
+  </g>
+</svg>
