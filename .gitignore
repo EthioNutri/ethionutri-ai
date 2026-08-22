@@ -1,1 +1,9 @@
 .freebuff/
+.env
+.env.local
+.env.example
+.env.*
+/frontend/web-frontend/.env.local
+/backend/.env.local
+/frontend/web-frontend/.env
+/backend/.env
