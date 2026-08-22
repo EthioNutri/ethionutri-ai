@@ -345,7 +345,7 @@ const ProfileSkeleton = ({ isDark }) => (
         medicalFlags, medical_conditions: medicalFlags,
         dietary_restrictions: dietaryRestrictions, dietaryRestrictions,
         preferred_language: preferredLanguage, preferredLanguage, languagePreference: preferredLanguage,
-        theme_mode: themeMode, themeMode, avatar: avatarUrl,
+        theme_mode: theme, themeMode: theme, avatar: avatarUrl,
         daily_calorie_target: calculatedDailyCalories, healthObjective
       };
 
@@ -357,7 +357,6 @@ const ProfileSkeleton = ({ isDark }) => (
         setIsDirty(false);
 
         if (preferredLanguage && preferredLanguage !== language) setLanguage(preferredLanguage);
-        if (themeMode && themeMode !== theme) setTheme(themeMode);
         if (updateAuthUser) updateAuthUser(updatedUser);
 
         setToastMessage(language === 'am' ? 'መገለጫዎ በጥሩ ሁኔታ ተዘምኗል!' : 'Profile updated successfully!');
