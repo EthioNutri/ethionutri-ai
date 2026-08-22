@@ -41,7 +41,9 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       let errMsg = error.response?.data?.error?.message || error.message || 'Login failed';
       if (error.code === 'ERR_NETWORK' || !error.response) {
-        errMsg = 'Unable to connect to EthioNutri server. Please ensure the backend is running at ' + (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1');
+        const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        const targetUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || (isProd ? 'https://ethionutri-backend.onrender.com/api/v1' : 'http://localhost:5000/api/v1');
+        errMsg = 'Unable to connect to EthioNutri server. Please ensure the backend is running at ' + targetUrl;
       }
       return { success: false, error: errMsg };
     }
@@ -64,7 +66,9 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       let errMsg = error.response?.data?.error?.message || error.message || 'Registration failed';
       if (error.code === 'ERR_NETWORK' || !error.response) {
-        errMsg = 'Unable to connect to EthioNutri server. Please ensure the backend is running at ' + (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1');
+        const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        const targetUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || (isProd ? 'https://ethionutri-backend.onrender.com/api/v1' : 'http://localhost:5000/api/v1');
+        errMsg = 'Unable to connect to EthioNutri server. Please ensure the backend is running at ' + targetUrl;
       }
       return { success: false, error: errMsg };
     }
