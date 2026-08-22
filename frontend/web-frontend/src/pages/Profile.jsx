@@ -416,7 +416,15 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
         borderRadius: '16px', padding: '24px', marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap'
       }}>
         <div style={{ position: 'relative' }}>
-          <img src={getAvatarUrl(avatarUrl)} alt={fullName} style={{ width: '88px', height: '88px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #059669' }} />
+          <img
+            src={getAvatarUrl(avatarUrl)}
+            alt={fullName || 'User Profile'}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = DEFAULT_AVATAR;
+            }}
+            style={{ width: '88px', height: '88px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #059669' }}
+          />
           <button type="button" onClick={() => fileInputRef.current?.click()} style={{ position: 'absolute', bottom: '0', right: '0', backgroundColor: '#059669', color: '#FFFFFF', border: '2px solid #FFFFFF', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <Camera size={14} />
           </button>
